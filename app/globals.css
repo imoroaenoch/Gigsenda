@@ -1,0 +1,83 @@
+/* Brighter Sans Font - Local Files */
+@font-face {
+  font-family: 'Brighter Sans';
+  src: url('/fonts/brightersans-regular.otf') format('opentype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Brighter Sans';
+  src: url('/fonts/brightersans-bold.otf') format('opentype');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Brighter Sans';
+  src: url('/fonts/brightersans-medium.otf') format('opentype');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Brighter Sans';
+  src: url('/fonts/brightersans-extra-bold.otf') format('opentype');
+  font-weight: 800;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Brighter Sans';
+  src: url('/fonts/brightersans-light.otf') format('opentype');
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* eslint-disable-next-line at-rule-no-unknown */
+@tailwind base;
+/* eslint-disable-next-line at-rule-no-unknown */
+@tailwind components;
+/* eslint-disable-next-line at-rule-no-unknown */
+@tailwind utilities;
+
+@layer base {
+  * {
+    font-family: 'Brighter Sans', sans-serif;
+  }
+  
+  html, body {
+    font-family: 'Brighter Sans', sans-serif;
+    background-color: #ffffff;
+  }
+  
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Brighter Sans', sans-serif;
+  }
+  
+  p, span, div, button, input, textarea, select {
+    font-family: 'Brighter Sans', sans-serif;
+  }
+}
+
+:root {
+  --primary: #FF8C00;
+  --background: #FFFFFF;
+  --background-cream: #FFFDF5;
+  --text: #333333;
+}
+
+@layer utilities {
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+}
