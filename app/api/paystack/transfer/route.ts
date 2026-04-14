@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/firebase";
+
+export const dynamic = 'force-dynamic';
 import { doc, getDoc, updateDoc, serverTimestamp } from "firebase/firestore";
 import { getLiveCommissionRate } from "@/lib/pricing";
 import { getPaystackSecret } from "@/lib/paystack-config";
