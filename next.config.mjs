@@ -3,9 +3,6 @@ const nextConfig = {
   experimental: {
     serverComponentsExternalPackages: ["firebase-admin", "google-auth-library"],
   },
-  eslint: {
-    ignoreDuringBuilds: true,
-  },
   images: {
     remotePatterns: [
       {
