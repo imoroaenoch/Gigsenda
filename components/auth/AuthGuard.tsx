@@ -59,7 +59,7 @@ export default function AuthGuard({ children, requireApproval = true }: AuthGuar
         </div>
         <h2 className="text-xl font-black text-text mb-2">Connection Error</h2>
         <p className="text-sm font-bold text-text-light max-w-xs leading-relaxed mb-8">
-          We're having trouble connecting to our authentication servers. This might be due to a network issue or a browser extension.
+          We&apos;re having trouble connecting to our authentication servers. This might be due to a network issue or a browser extension.
         </p>
         <button 
           onClick={() => window.location.reload()}
