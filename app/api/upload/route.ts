@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { initializeApp, getApps, cert } from "firebase-admin/app";
+
+export const dynamic = 'force-dynamic';
 import { v2 as cloudinary } from "cloudinary";
 
 // Configure Cloudinary

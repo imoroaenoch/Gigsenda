@@ -1,6 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { updateProvider } from '@/lib/firestore';
-import { getPaystackSecret } from '@/lib/paystack-config';
+
+// Make this route dynamic - don't try to statically generate
+export const dynamic = 'force-dynamic';
+
+// Lazy load the paystack config to avoid build-time errors
+async function getPaystackSecretSafe(): Promise<string | null> {
+  try {
+    const { getPaystackSecret } = await import('@/lib/paystack-config');
+    return await getPaystackSecret();
+  } catch (e) {
+    console.error('[create-subaccount] Failed to get Paystack secret:', e);
+    // Fallback to env var directly
+    return process.env.PAYSTACK_SECRET_KEY || null;
+  }
+}
 
 interface CreateSubaccountRequest {
   providerId: string;
@@ -45,7 +59,14 @@ export async function POST(request: NextRequest) {
     }
 
     // Get Paystack secret key from Firestore admin settings
-    const paystackSecretKey = await getPaystackSecret();
+    const paystackSecretKey = await getPaystackSecretSafe();
+    
+    if (!paystackSecretKey) {
+      return NextResponse.json(
+        { error: 'Paystack secret key not configured' },
+        { status: 500 }
+      );
+    }
 
     // Create subaccount via Paystack API
     const paystackResponse = await fetch('https://api.paystack.co/subaccount', {

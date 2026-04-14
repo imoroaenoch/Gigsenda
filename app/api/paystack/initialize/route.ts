@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { initializePayment } from "@/lib/paystack";
+
+export const dynamic = 'force-dynamic';
 import { getProvider } from "@/lib/firestore";
 import { getSettingSection } from "@/lib/admin-settings";
 import { addDoc, collection, serverTimestamp } from "firebase/firestore";

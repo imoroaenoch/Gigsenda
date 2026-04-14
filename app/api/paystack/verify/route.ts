@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { verifyPayment, calculateCommission } from "@/lib/paystack";
+
+export const dynamic = 'force-dynamic';
 import { getApps, initializeApp, cert } from "firebase-admin/app";
 import { getFirestore, FieldValue } from "firebase-admin/firestore";
 import { addSecurityHeaders } from "@/lib/security";
