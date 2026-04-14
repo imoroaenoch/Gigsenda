@@ -56,11 +56,11 @@ function ProviderBookingsPage() {
       setLoading(false);
 
       // Fetch photos for customers missing a photo
-      const missingIds = [...new Set(
+      const missingIds = Array.from(new Set(
         data
           .filter((b: any) => !b.customerPhoto && b.customerId)
           .map((b: any) => b.customerId as string)
-      )];
+      ));
       if (missingIds.length === 0) return;
       const entries = await Promise.all(
         missingIds.map(async (uid) => {
