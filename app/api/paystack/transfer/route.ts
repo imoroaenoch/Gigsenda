@@ -1,17 +1,49 @@
 import { NextRequest, NextResponse } from "next/server";
-import { db } from "@/lib/firebase";
-import { doc, getDoc, updateDoc, serverTimestamp } from "firebase/firestore";
-import { getLiveCommissionRate } from "@/lib/pricing";
-import { getPaystackSecret } from "@/lib/paystack-config";
+import { getApps, initializeApp, cert } from "firebase-admin/app";
+import { getFirestore, FieldValue } from "firebase-admin/firestore";
 
 export const dynamic = 'force-dynamic';
+
+function getAdminDb() {
+  const app = getApps().length > 0 ? getApps()[0] : initializeApp({
+    credential: cert({
+      projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID!,
+      clientEmail: process.env.FIREBASE_CLIENT_EMAIL!,
+      privateKey: process.env.FIREBASE_PRIVATE_KEY!.replace(/\\n/g, "\n"),
+    }),
+  });
+  return getFirestore(app);
+}
+
+async function getPaystackSecretSafe(): Promise<string> {
+  try {
+    const { getPaystackSecret } = await import("@/lib/paystack-config");
+    return await getPaystackSecret();
+  } catch {
+    const key = process.env.PAYSTACK_SECRET_KEY;
+    if (key) return key;
+    throw new Error("Paystack secret key not configured");
+  }
+}
+
+async function getLiveCommissionRateSafe(): Promise<number> {
+  try {
+    const db = getAdminDb();
+    const snap = await db.doc("app_settings/commission").get();
+    if (snap.exists) {
+      const pct = snap.data()?.percentage;
+      if (typeof pct === "number" && pct > 0) return pct / 100;
+    }
+  } catch {}
+  return 0.1;
+}
 
 async function createOrGetRecipient(
   name: string,
   accountNumber: string,
   bankCode: string
 ): Promise<string> {
-  const secret = await getPaystackSecret();
+  const secret = await getPaystackSecretSafe();
   const res = await fetch("https://api.paystack.co/transferrecipient", {
     method: "POST",
     headers: {
@@ -36,7 +68,7 @@ async function initiateTransfer(
   recipientCode: string,
   reason: string
 ): Promise<string> {
-  const secret = await getPaystackSecret();
+  const secret = await getPaystackSecretSafe();
   const res = await fetch("https://api.paystack.co/transfer", {
     method: "POST",
     headers: {
@@ -63,13 +95,15 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ success: false, error: "Missing required fields" }, { status: 400 });
     }
 
+    const adminDb = getAdminDb();
+
     // Fetch provider bank details
-    const providerSnap = await getDoc(doc(db, "providers", providerId));
-    if (!providerSnap.exists()) {
+    const providerSnap = await adminDb.doc(`providers/${providerId}`).get();
+    if (!providerSnap.exists) {
       return NextResponse.json({ success: false, error: "Provider not found" }, { status: 404 });
     }
 
-    const providerData = providerSnap.data();
+    const providerData = providerSnap.data()!;
     const bankDetails = providerData.bankDetails;
 
     if (!bankDetails?.accountNumber || !bankDetails?.bankCode || !bankDetails?.accountName) {
@@ -79,7 +113,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const commissionRate = await getLiveCommissionRate();
+    const commissionRate = await getLiveCommissionRateSafe();
     const commission = Math.round(amount * commissionRate);
     const providerAmount = amount - commission;
 
@@ -93,7 +127,7 @@ export async function POST(req: NextRequest) {
 
     // Save recipient code for future use
     if (!providerData.paystackRecipientCode) {
-      await updateDoc(doc(db, "providers", providerId), {
+      await adminDb.doc(`providers/${providerId}`).update({
         paystackRecipientCode: recipientCode,
       });
     }
@@ -106,15 +140,15 @@ export async function POST(req: NextRequest) {
     );
 
     // Update booking
-    await updateDoc(doc(db, "bookings", bookingId), {
+    await adminDb.doc(`bookings/${bookingId}`).update({
       escrowStatus: "released",
       fundsReleased: true,
-      fundsReleasedAt: serverTimestamp(),
+      fundsReleasedAt: FieldValue.serverTimestamp(),
       transferReference,
       providerAmountPaid: providerAmount,
       commissionEarned: commission,
       status: "completed",
-      updatedAt: serverTimestamp(),
+      updatedAt: FieldValue.serverTimestamp(),
     });
 
     return NextResponse.json({

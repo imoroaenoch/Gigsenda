@@ -1,9 +1,30 @@
 import { NextRequest, NextResponse } from "next/server";
-import { db } from "@/lib/firebase";
-import { doc, getDoc, updateDoc, addDoc, collection, serverTimestamp } from "firebase/firestore";
-import { getPaystackSecret } from "@/lib/paystack-config";
+import { getApps, initializeApp, cert } from "firebase-admin/app";
+import { getFirestore, FieldValue } from "firebase-admin/firestore";
 
 export const dynamic = 'force-dynamic';
+
+function getAdminDb() {
+  const app = getApps().length > 0 ? getApps()[0] : initializeApp({
+    credential: cert({
+      projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID!,
+      clientEmail: process.env.FIREBASE_CLIENT_EMAIL!,
+      privateKey: process.env.FIREBASE_PRIVATE_KEY!.replace(/\\n/g, "\n"),
+    }),
+  });
+  return getFirestore(app);
+}
+
+async function getPaystackSecretSafe(): Promise<string> {
+  try {
+    const { getPaystackSecret } = await import("@/lib/paystack-config");
+    return await getPaystackSecret();
+  } catch {
+    const key = process.env.PAYSTACK_SECRET_KEY;
+    if (key) return key;
+    throw new Error("Paystack secret key not configured");
+  }
+}
 
 export async function POST(req: NextRequest) {
   try {
@@ -13,13 +34,15 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ success: false, error: "Missing required fields" }, { status: 400 });
     }
 
+    const adminDb = getAdminDb();
+
     // Fetch booking
-    const bookingSnap = await getDoc(doc(db, "bookings", bookingId));
-    if (!bookingSnap.exists()) {
+    const bookingSnap = await adminDb.doc(`bookings/${bookingId}`).get();
+    if (!bookingSnap.exists) {
       return NextResponse.json({ success: false, error: "Booking not found" }, { status: 404 });
     }
 
-    const booking = bookingSnap.data();
+    const booking = bookingSnap.data()!;
     const paymentReference = booking.paymentReference;
 
     if (!paymentReference) {
@@ -30,7 +53,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Call Paystack refund API
-    const secret = await getPaystackSecret();
+    const secret = await getPaystackSecretSafe();
     const res = await fetch("https://api.paystack.co/refund", {
       method: "POST",
       headers: {
@@ -39,7 +62,7 @@ export async function POST(req: NextRequest) {
       },
       body: JSON.stringify({
         transaction: paymentReference,
-        amount: Math.round((booking.totalAmount || booking.price) * 100), // kobo
+        amount: Math.round((booking.totalAmount || booking.price) * 100),
       }),
     });
 
@@ -49,33 +72,33 @@ export async function POST(req: NextRequest) {
     }
 
     // Update booking status
-    await updateDoc(doc(db, "bookings", bookingId), {
+    await adminDb.doc(`bookings/${bookingId}`).update({
       status: "refunded",
       escrowStatus: "refunded",
-      refundedAt: serverTimestamp(),
+      refundedAt: FieldValue.serverTimestamp(),
       refundReason: reason,
-      updatedAt: serverTimestamp(),
+      updatedAt: FieldValue.serverTimestamp(),
     });
 
     // Send notification to customer
-    await addDoc(collection(db, "notifications"), {
+    await adminDb.collection("notifications").add({
       userId: customerId,
       title: "Refund Processed",
       message: "Your refund has been processed. Money will return to your account within 3-5 business days.",
       type: "payment",
       read: false,
-      createdAt: serverTimestamp(),
+      createdAt: FieldValue.serverTimestamp(),
     });
 
     // Send notification to provider
     if (booking.providerId) {
-      await addDoc(collection(db, "notifications"), {
+      await adminDb.collection("notifications").add({
         userId: booking.providerId,
         title: "Booking Refunded",
         message: `A booking has been refunded due to: ${reason}`,
         type: "booking",
         read: false,
-        createdAt: serverTimestamp(),
+        createdAt: FieldValue.serverTimestamp(),
       });
     }
 
