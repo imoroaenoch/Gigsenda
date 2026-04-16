@@ -1,10 +1,24 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  serverExternalPackages: [
+    "firebase-admin",
+    "firebase-admin/app",
+    "firebase-admin/firestore",
+    "firebase-admin/auth",
+    "google-auth-library",
+    "@google-cloud/firestore",
+    "@google-cloud/storage",
+    "cloudinary",
+  ],
   experimental: {
     serverComponentsExternalPackages: [
       "firebase-admin",
+      "firebase-admin/app",
+      "firebase-admin/firestore",
+      "firebase-admin/auth",
       "google-auth-library",
       "@google-cloud/firestore",
+      "@google-cloud/storage",
       "cloudinary",
     ],
   },

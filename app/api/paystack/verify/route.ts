@@ -5,6 +5,7 @@ import { getFirestore, FieldValue } from "firebase-admin/firestore";
 import { addSecurityHeaders } from "@/lib/security";
 
 export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
 
 function getAdminDb() {
   const app = getApps().length > 0 ? getApps()[0] : initializeApp({
