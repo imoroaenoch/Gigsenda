@@ -1,5 +1,7 @@
 "use client";
 
+export const dynamic = 'force-dynamic';
+
 import { useState, useEffect } from "react";
 import { Star, Trash2, Search, MessageSquare, User, Briefcase } from "lucide-react";
 import { getAllReviews, deleteReview, Review } from "@/lib/reviews";

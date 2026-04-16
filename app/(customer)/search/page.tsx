@@ -1,5 +1,7 @@
 "use client";
 
+export const dynamic = 'force-dynamic';
+
 import { useState, Suspense } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, Search as SearchIcon, SlidersHorizontal, Star, X } from "lucide-react";

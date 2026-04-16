@@ -1,5 +1,7 @@
 "use client";
 
+export const dynamic = 'force-dynamic';
+
 import { ShieldAlert, LogOut } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { signOut } from "@/lib/auth";

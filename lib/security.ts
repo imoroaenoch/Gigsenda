@@ -1,7 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getAuth } from "firebase/auth";
-import { db } from "./firebase";
-import { addDoc, collection, serverTimestamp } from "firebase/firestore";
+import { getApps, initializeApp, cert } from "firebase-admin/app";
+import { getFirestore, FieldValue } from "firebase-admin/firestore";
+
+function getAdminDb() {
+  const app = getApps().length > 0 ? getApps()[0] : initializeApp({
+    credential: cert({
+      projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID!,
+      clientEmail: process.env.FIREBASE_CLIENT_EMAIL!,
+      privateKey: process.env.FIREBASE_PRIVATE_KEY!.replace(/\\n/g, "\n"),
+    }),
+  });
+  return getFirestore(app);
+}
 
 // Rate limiting storage (in production, use Redis or similar)
 const rateLimitStore = new Map<string, { count: number; resetTime: number }>();
@@ -125,9 +135,9 @@ export function getClientIP(request: NextRequest): string {
  */
 export async function logSecurityEvent(event: SecurityEvent): Promise<void> {
   try {
-    await addDoc(collection(db, "security_logs"), {
+    await getAdminDb().collection("security_logs").add({
       ...event,
-      timestamp: serverTimestamp(),
+      timestamp: FieldValue.serverTimestamp(),
     });
   } catch (error) {
     console.error("Failed to log security event:", error);
@@ -183,7 +193,7 @@ export function withAuth(handler: (req: NextRequest, context: { user: any }) => 
           ip,
           userAgent: request.headers.get('user-agent') || undefined,
           details: "Invalid or missing authentication token",
-          timestamp: serverTimestamp(),
+          timestamp: new Date(),
           severity: "medium",
         });
         
@@ -220,7 +230,7 @@ export function withRateLimit(config: RateLimitConfig, handler: (req: NextReques
         ip,
         userAgent: request.headers.get('user-agent') || undefined,
         details: `Rate limit exceeded: ${config.maxRequests} requests per ${config.windowMs / 1000}s`,
-        timestamp: serverTimestamp(),
+        timestamp: new Date(),
         severity: "medium",
       });
       
@@ -258,7 +268,7 @@ export function withValidation(schema: any, handler: (req: NextRequest, data: an
           ip,
           userAgent: request.headers.get('user-agent') || undefined,
           details: `Validation failed: ${validation.errors?.join(', ')}`,
-          timestamp: serverTimestamp(),
+          timestamp: new Date(),
           severity: "low",
         });
         

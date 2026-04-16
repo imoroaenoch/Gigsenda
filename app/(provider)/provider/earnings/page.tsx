@@ -1,5 +1,7 @@
 "use client";
 
+export const dynamic = 'force-dynamic';
+
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, TrendingUp, Wallet, Clock, CheckCircle, AlertCircle, Banknote } from "lucide-react";

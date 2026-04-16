@@ -1,5 +1,7 @@
 "use client";
 
+export const dynamic = 'force-dynamic';
+
 import { useState, useEffect } from "react";
 import { addCategory, deleteCategory, addSubcategory, deleteSubcategory, updateCategoryFallbackPrice } from "@/lib/admin";
 import { subscribeCategoriesWithSubs, CategoryWithSubs } from "@/lib/categories";

@@ -5,17 +5,9 @@ const nextConfig = {
       "firebase-admin",
       "google-auth-library",
       "@google-cloud/firestore",
-      "@firebase/firestore",
       "cloudinary",
     ],
   },
-  serverExternalPackages: [
-    "firebase-admin",
-    "google-auth-library",
-    "@google-cloud/firestore",
-    "@firebase/firestore",
-    "cloudinary",
-  ],
   typescript: {
     ignoreBuildErrors: true,
   },

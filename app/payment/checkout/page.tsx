@@ -1,6 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+export const dynamic = 'force-dynamic';
+
+import { useEffect, useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ChevronLeft, Shield, Calendar, Clock } from "lucide-react";
 import Image from "next/image";
@@ -31,7 +33,7 @@ interface ProviderDetails {
   serviceTitle?: string;
 }
 
-export default function PaymentCheckoutPage() {
+function PaymentCheckoutContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { user } = useAuth();
@@ -314,5 +316,13 @@ export default function PaymentCheckoutPage() {
         </div>
       </main>
     </div>
+  );
+}
+
+export default function PaymentCheckoutPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><div className="h-8 w-8 animate-spin rounded-full border-4 border-orange-500 border-t-transparent"></div></div>}>
+      <PaymentCheckoutContent />
+    </Suspense>
   );
 }

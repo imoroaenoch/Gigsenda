@@ -1,5 +1,7 @@
 "use client";
 
+export const dynamic = 'force-dynamic';
+
 import { useState, useEffect } from "react";
 import { getAllTransactions } from "@/lib/admin";
 import { collection, query, onSnapshot } from "firebase/firestore";
