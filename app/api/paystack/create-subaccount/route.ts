@@ -1,17 +1,25 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { updateProvider } from '@/lib/firestore';
+import { getApps, initializeApp, cert } from 'firebase-admin/app';
+import { getFirestore } from 'firebase-admin/firestore';
 
-// Make this route dynamic - don't try to statically generate
 export const dynamic = 'force-dynamic';
 
-// Lazy load the paystack config to avoid build-time errors
+function getAdminDb() {
+  const app = getApps().length > 0 ? getApps()[0] : initializeApp({
+    credential: cert({
+      projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID!,
+      clientEmail: process.env.FIREBASE_CLIENT_EMAIL!,
+      privateKey: process.env.FIREBASE_PRIVATE_KEY!.replace(/\\n/g, '\n'),
+    }),
+  });
+  return getFirestore(app);
+}
+
 async function getPaystackSecretSafe(): Promise<string | null> {
   try {
     const { getPaystackSecret } = await import('@/lib/paystack-config');
     return await getPaystackSecret();
   } catch (e) {
-    console.error('[create-subaccount] Failed to get Paystack secret:', e);
-    // Fallback to env var directly
     return process.env.PAYSTACK_SECRET_KEY || null;
   }
 }
@@ -108,12 +116,14 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Save subaccount details to Firestore
-    await updateProvider(providerId, {
+    // Save subaccount details to Firestore via Admin SDK
+    const adminDb = getAdminDb();
+    await adminDb.doc(`providers/${providerId}`).update({
       paystackSubaccountCode: paystackData.data.subaccount_code,
       paystackSubaccountId: paystackData.data.id.toString(),
       subaccountCreatedAt: new Date(),
       subaccountActive: true,
+      updatedAt: new Date(),
     });
 
     console.log(`Successfully created Paystack subaccount for provider ${providerId}: ${paystackData.data.subaccount_code}`);
