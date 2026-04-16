@@ -76,6 +76,7 @@ export default function CustomerProfilePage() {
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [localPreview, setLocalPreview] = useState<string | null>(null);
+  const [uploadedPhotoURL, setUploadedPhotoURL] = useState<string | null>(null);
 
   useEffect(() => {
     if (profile) {
@@ -121,8 +122,9 @@ export default function CustomerProfilePage() {
     setUploadProgress(0);
     try {
       // uploadProfilePhoto now writes photoURL to users/{uid} automatically
-      await uploadProfilePhoto(user.uid, file, "users", (pct) => setUploadProgress(pct));
+      const newPhotoURL = await uploadProfilePhoto(user.uid, file, "users", (pct) => setUploadProgress(pct));
       setLocalPreview(null);
+      setUploadedPhotoURL(newPhotoURL);
       toast.success("Profile photo updated!");
     } catch (error: any) {
       setLocalPreview(null);
@@ -206,9 +208,9 @@ export default function CustomerProfilePage() {
             <div className="flex flex-col items-center pt-10 pb-8 px-6">
               <div className="relative h-28 w-28">
                 <div className="relative h-full w-full overflow-hidden rounded-full border-4 border-primary/10 bg-gray-100">
-                  {(localPreview || profile?.photoURL) ? (
+                  {(localPreview || uploadedPhotoURL || profile?.photoURL) ? (
                     <Image
-                      src={localPreview || profile!.photoURL!}
+                      src={localPreview || uploadedPhotoURL || profile!.photoURL!}
                       alt="Profile"
                       fill
                       className="object-cover"

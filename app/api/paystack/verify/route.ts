@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { verifyPayment, calculateCommission } from "@/lib/paystack";
-
-export const dynamic = 'force-dynamic';
 import { getApps, initializeApp, cert } from "firebase-admin/app";
 import { getFirestore, FieldValue } from "firebase-admin/firestore";
 import { addSecurityHeaders } from "@/lib/security";
+
+export const dynamic = 'force-dynamic';
 
 function getAdminDb() {
   const app = getApps().length > 0 ? getApps()[0] : initializeApp({
