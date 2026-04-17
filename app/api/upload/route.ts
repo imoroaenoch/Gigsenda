@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { initializeApp, getApps, cert } from "firebase-admin/app";
 import { v2 as cloudinary } from "cloudinary";
+import { getAdminDb } from "@/lib/admin-db";
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
@@ -11,15 +11,6 @@ cloudinary.config({
   api_key:    process.env.CLOUDINARY_API_KEY!,
   api_secret: process.env.CLOUDINARY_API_SECRET!,
 });
-
-// Singleton Firebase Admin for Firestore writes
-function getAdminApp() {
-  if (getApps().length > 0) return getApps()[0];
-  const projectId   = process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID!;
-  const clientEmail = process.env.FIREBASE_CLIENT_EMAIL!;
-  const privateKey  = process.env.FIREBASE_PRIVATE_KEY!.replace(/\\n/g, "\n");
-  return initializeApp({ credential: cert({ projectId, clientEmail, privateKey }) });
-}
 
 export async function POST(req: NextRequest) {
   try {
@@ -66,9 +57,7 @@ export async function POST(req: NextRequest) {
     console.log("[API/upload] Done. URL:", downloadURL);
 
     // Save to Firestore via Admin SDK
-    const adminApp = getAdminApp();
-    const { getFirestore } = await import("firebase-admin/firestore");
-    const adminDb = getFirestore(adminApp);
+    const adminDb = getAdminDb();
     await adminDb.doc(`${target}/${uid}`).update({
       photoURL:  downloadURL,
       updatedAt: new Date(),

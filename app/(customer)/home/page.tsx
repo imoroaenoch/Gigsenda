@@ -123,7 +123,7 @@ export default function HomePage() {
       title: "Book Event Services",
       subtitle: "Photographers, planners and MCs for your special day",
       buttonText: "Explore",
-      backgroundImage: "/hero-event-services.jpg",
+      backgroundImage: "/heroeventservices.png",
       background: "from-[#3B82F6] to-[#2563EB]",
       badgeBg: "bg-white/30",
       cardImage: "/heroeventservices.png",

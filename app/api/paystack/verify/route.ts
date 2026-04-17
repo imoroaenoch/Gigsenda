@@ -1,22 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { verifyPayment, calculateCommission } from "@/lib/paystack";
-import { getApps, initializeApp, cert } from "firebase-admin/app";
-import { getFirestore, FieldValue } from "firebase-admin/firestore";
+import { FieldValue } from "firebase-admin/firestore";
 import { addSecurityHeaders } from "@/lib/security";
+import { getAdminDb } from "@/lib/admin-db";
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
-
-function getAdminDb() {
-  const app = getApps().length > 0 ? getApps()[0] : initializeApp({
-    credential: cert({
-      projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID!,
-      clientEmail: process.env.FIREBASE_CLIENT_EMAIL!,
-      privateKey: process.env.FIREBASE_PRIVATE_KEY!.replace(/\\n/g, "\n"),
-    }),
-  });
-  return getFirestore(app);
-}
 
 export async function POST(request: NextRequest) {
   try {
@@ -79,11 +68,11 @@ export async function POST(request: NextRequest) {
       const providerDoc = await adminDb.doc(`providers/${metadata.providerId}`).get();
       if (providerDoc.exists) {
         const providerData = providerDoc.data()!;
-        providerSubaccountCode = providerData.paystackSubaccountCode;
+        providerSubaccountCode = providerData.paystackSubaccountCode ?? undefined;
         providerBankDetails = {
-          bankName: providerData.bankName,
-          accountNumber: providerData.bankAccountNumber,
-          accountName: providerData.bankAccountName,
+          bankName: providerData.bankName ?? null,
+          accountNumber: providerData.bankAccountNumber ?? null,
+          accountName: providerData.bankAccountName ?? null,
         };
       }
     } catch (error) {

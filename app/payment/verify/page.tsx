@@ -4,8 +4,6 @@ export const dynamic = 'force-dynamic';
 
 import { useEffect, useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { db } from "@/lib/firebase";
-import { doc, updateDoc, serverTimestamp, getDoc } from "firebase/firestore";
 import toast from "react-hot-toast";
 
 const formatNaira = (amount: number) => new Intl.NumberFormat("en-NG", { style: "currency", currency: "NGN", minimumFractionDigits: 0 }).format(amount);
@@ -55,23 +53,6 @@ function PaymentVerifyContent() {
     }
   }, [countdown, verificationResult, router]);
 
-  // Helper function to create notification
-  const createNotification = async (userId: string, title: string, message: string, type: string) => {
-    try {
-      const { addDoc, collection } = await import("firebase/firestore");
-      await addDoc(collection(db, "notifications"), {
-        userId,
-        title,
-        message,
-        type,
-        read: false,
-        createdAt: serverTimestamp(),
-      });
-    } catch (error) {
-      console.error("Error creating notification:", error);
-    }
-  };
-
   const verifyPayment = async () => {
     try {
       const response = await fetch("/api/paystack/verify", {
@@ -90,55 +71,7 @@ function PaymentVerifyContent() {
         throw new Error(result.error || "Payment verification failed");
       }
 
-      const bookingId = result.data?.bookingId;
-
-      if (bookingId) {
-        try {
-          // Fetch booking to get provider and customer IDs
-          const bookingRef = doc(db, "bookings", bookingId);
-          const bookingSnap = await getDoc(bookingRef);
-
-          if (bookingSnap.exists()) {
-            const bookingData = bookingSnap.data();
-
-            // Update booking with paid status and escrow details
-            await updateDoc(bookingRef, {
-              status: "paid",
-              paymentStatus: "paid",
-              paymentReference: result.data.reference,
-              paymentDate: serverTimestamp(),
-              escrowStatus: "holding",
-              fundsReleased: false,
-              updatedAt: serverTimestamp(),
-            });
-
-            // Send notification to provider
-            if (bookingData.providerId) {
-              await createNotification(
-                bookingData.providerId,
-                "New Paid Booking!",
-                `You have a new paid booking from ${bookingData.customerName}. Get ready to deliver!`,
-                "booking"
-              );
-            }
-
-            // Send notification to customer
-            if (bookingData.customerId) {
-              await createNotification(
-                bookingData.customerId,
-                "Payment Successful!",
-                "Your payment was successful and your booking is confirmed. The provider has been notified.",
-                "payment"
-              );
-            }
-
-            toast.success("Payment verified and booking confirmed!");
-          }
-        } catch (updateError) {
-          console.error("Error updating booking after payment:", updateError);
-          // Don't fail the verification if notification fails
-        }
-      }
+      toast.success("Payment verified and booking confirmed!");
 
       setVerificationResult({
         success: true,
@@ -147,21 +80,6 @@ function PaymentVerifyContent() {
       });
     } catch (error) {
       console.error("Payment verification error:", error);
-      
-      // Update booking status back to pending_payment on failure
-      const bookingId = searchParams.get("bookingId");
-      if (bookingId) {
-        try {
-          await updateDoc(doc(db, "bookings", bookingId), {
-            status: "pending_payment",
-            paymentStatus: "failed",
-            paymentError: error instanceof Error ? error.message : "Payment failed",
-            updatedAt: serverTimestamp(),
-          });
-        } catch (updateError) {
-          console.error("Error updating booking status on failure:", updateError);
-        }
-      }
       
       setVerificationResult({
         success: false,

@@ -1,13 +1,4 @@
-import { getApps, initializeApp, cert } from "firebase-admin/app";
-import { getFirestore } from "firebase-admin/firestore";
-
-function getAdminApp() {
-  if (getApps().length > 0) return getApps()[0];
-  const projectId   = process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID!;
-  const clientEmail = process.env.FIREBASE_CLIENT_EMAIL!;
-  const privateKey  = process.env.FIREBASE_PRIVATE_KEY!.replace(/\\n/g, "\n");
-  return initializeApp({ credential: cert({ projectId, clientEmail, privateKey }) });
-}
+import { getAdminDb } from "./admin-db";
 
 let _cachedSecret: string | null = null;
 let _cachedAt = 0;
@@ -18,8 +9,7 @@ export async function getPaystackSecret(): Promise<string> {
   if (_cachedSecret && now - _cachedAt < CACHE_TTL) return _cachedSecret;
 
   try {
-    const adminApp = getAdminApp();
-    const db = getFirestore(adminApp);
+    const db = getAdminDb();
     const snap = await db.doc("app_settings/payment").get();
     if (snap.exists) {
       const data = snap.data();
@@ -42,8 +32,7 @@ export async function getPaystackSecret(): Promise<string> {
 
 export async function getAppUrl(): Promise<string> {
   try {
-    const adminApp = getAdminApp();
-    const db = getFirestore(adminApp);
+    const db = getAdminDb();
     const snap = await db.doc("app_settings/general").get();
     if (snap.exists) {
       const url = snap.data()?.websiteUrl as string | undefined;
@@ -57,8 +46,7 @@ export async function getAppUrl(): Promise<string> {
 
 export async function getPaystackPublicKey(): Promise<string> {
   try {
-    const adminApp = getAdminApp();
-    const db = getFirestore(adminApp);
+    const db = getAdminDb();
     const snap = await db.doc("app_settings/payment").get();
     if (snap.exists) {
       const data = snap.data();

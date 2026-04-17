@@ -1,22 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { initializePayment } from "@/lib/paystack";
 import { verifyAuthToken, addSecurityHeaders } from "@/lib/security";
-import { getApps, initializeApp, cert } from "firebase-admin/app";
-import { getFirestore, FieldValue } from "firebase-admin/firestore";
+import { FieldValue } from "firebase-admin/firestore";
+import { getAdminDb } from "@/lib/admin-db";
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
-
-function getAdminDb() {
-  const app = getApps().length > 0 ? getApps()[0] : initializeApp({
-    credential: cert({
-      projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID!,
-      clientEmail: process.env.FIREBASE_CLIENT_EMAIL!,
-      privateKey: process.env.FIREBASE_PRIVATE_KEY!.replace(/\\n/g, "\n"),
-    }),
-  });
-  return getFirestore(app);
-}
 
 // Payment initialization handler
 export async function POST(request: NextRequest) {
