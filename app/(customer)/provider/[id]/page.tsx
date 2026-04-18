@@ -130,12 +130,19 @@ export default function ProviderProfilePage() {
               </div>
             </div>
             <div className="flex gap-2">
-              <button onClick={handleStartChat} disabled={isStartingChat}
-                className="touch-manipulation flex h-10 w-10 items-center justify-center rounded-full border-2 border-primary/10 text-primary active:opacity-70 disabled:opacity-50">
+              <button
+                onClick={handleStartChat}
+                onTouchEnd={(e) => { e.preventDefault(); handleStartChat(); }}
+                disabled={isStartingChat}
+                style={{ touchAction: 'manipulation', WebkitTapHighlightColor: 'transparent' }}
+                className="flex h-10 w-10 items-center justify-center rounded-full border-2 border-primary/10 text-primary active:opacity-70 disabled:opacity-50">
                 {isStartingChat ? <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent" /> : <MessageSquare className="h-5 w-5" />}
               </button>
-              <button onClick={() => toast.success("Phone calls are disabled. Please use in-app chat.")}
-                className="touch-manipulation flex h-10 w-10 items-center justify-center rounded-full border-2 border-primary/10 text-primary active:opacity-70">
+              <button
+                onClick={() => toast.success("Phone calls are disabled. Please use in-app chat.")}
+                onTouchEnd={(e) => { e.preventDefault(); toast.success("Phone calls are disabled. Please use in-app chat."); }}
+                style={{ touchAction: 'manipulation', WebkitTapHighlightColor: 'transparent' }}
+                className="flex h-10 w-10 items-center justify-center rounded-full border-2 border-primary/10 text-primary active:opacity-70">
                 <Phone className="h-5 w-5" />
               </button>
             </div>
@@ -392,18 +399,26 @@ export default function ProviderProfilePage() {
 
   return (
     <AuthGuard>
-      <main className="min-h-screen bg-[#FFF8F0] pb-28 lg:pb-0 overflow-x-hidden">
+      <main className="min-h-screen bg-[#FFF8F0] pb-28 lg:pb-0">
 
         {/* ── MOBILE header (floating over hero) ── */}
         <header className="fixed top-0 z-50 w-full px-4 pt-4 pb-4 flex items-center justify-between lg:hidden">
-          <button onClick={() => router.back()} className="touch-manipulation flex h-10 w-10 items-center justify-center rounded-xl bg-white shadow-sm border border-gray-100 active:opacity-70">
+          <button
+            onClick={() => router.back()}
+            onTouchEnd={(e) => { e.preventDefault(); router.back(); }}
+            style={{ touchAction: 'manipulation', WebkitTapHighlightColor: 'transparent' }}
+            className="flex h-10 w-10 items-center justify-center rounded-xl bg-white shadow-sm border border-gray-100 active:opacity-70">
             <ChevronLeft className="h-5 w-5 text-text" />
           </button>
-          <div className="flex flex-col items-center">
+          <div className="flex flex-col items-center pointer-events-none">
             <h1 className="text-base font-semibold text-white leading-tight">{provider.name}</h1>
             <p className="text-[10px] font-medium text-white/80">{provider.specialization}</p>
           </div>
-          <button onClick={handleShare} className="touch-manipulation flex h-10 w-10 items-center justify-center rounded-xl bg-white shadow-sm border border-gray-100 active:opacity-70">
+          <button
+            onClick={handleShare}
+            onTouchEnd={(e) => { e.preventDefault(); handleShare(); }}
+            style={{ touchAction: 'manipulation', WebkitTapHighlightColor: 'transparent' }}
+            className="flex h-10 w-10 items-center justify-center rounded-xl bg-white shadow-sm border border-gray-100 active:opacity-70">
             <Share2 className="h-5 w-5 text-text" />
           </button>
         </header>
@@ -480,8 +495,10 @@ export default function ProviderProfilePage() {
                 </div>
                 <div className="flex items-center gap-2">
                   <FavButton size="sm" />
-                  <button onClick={() => router.push(`/book/${provider.id}`)}
-                    className="flex items-center gap-2 h-11 px-6 rounded-2xl bg-gradient-to-r from-[#FF9A3E] to-[#FF8C00] text-white font-black text-[14px] shadow-lg shadow-primary/20 hover:shadow-xl hover:scale-[1.02] active:scale-95 transition-all">
+                  <button
+                    onClick={() => router.push(`/book/${provider.id}`)}
+                    style={{ touchAction: 'manipulation', WebkitTapHighlightColor: 'transparent' }}
+                    className="flex items-center gap-2 h-11 px-6 rounded-2xl bg-gradient-to-r from-[#FF9A3E] to-[#FF8C00] text-white font-black text-[14px] shadow-lg shadow-primary/20 active:opacity-80">
                     <Calendar className="h-4 w-4" />
                     Hire {provider.name.split(" ")[0]}
                   </button>
@@ -499,6 +516,7 @@ export default function ProviderProfilePage() {
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
+                onTouchEnd={(e) => { e.preventDefault(); setActiveTab(tab); }}
                 style={{ touchAction: 'manipulation', WebkitTapHighlightColor: 'transparent', cursor: 'pointer' }}
                 className={`px-5 py-2.5 rounded-full text-[13px] font-medium whitespace-nowrap ${activeTab === tab ? "bg-[#FFF4E5] text-primary shadow-sm" : "bg-gray-50 text-text-light"}`}>
                 {tab}
@@ -525,8 +543,9 @@ export default function ProviderProfilePage() {
         <footer className="fixed bottom-0 left-0 w-full bg-white border-t border-gray-100 px-6 py-4 flex items-center gap-4 z-50 lg:hidden">
           <button
             onClick={() => router.push(`/book/${provider.id}`)}
+            onTouchEnd={(e) => { e.preventDefault(); router.push(`/book/${provider.id}`); }}
             style={{ WebkitTapHighlightColor: 'transparent', touchAction: 'manipulation' }}
-            className="touch-manipulation flex-1 flex items-center justify-center gap-2 h-14 rounded-2xl bg-gradient-to-r from-[#FF9A3E] to-[#FF8C00] text-white font-medium text-[15px] shadow-xl shadow-primary/20 active:opacity-80">
+            className="flex-1 flex items-center justify-center gap-2 h-14 rounded-2xl bg-gradient-to-r from-[#FF9A3E] to-[#FF8C00] text-white font-medium text-[15px] shadow-xl shadow-primary/20 active:opacity-80">
             <Calendar className="h-5 w-5" />
             Hire {provider.name.split(" ")[0]}
           </button>

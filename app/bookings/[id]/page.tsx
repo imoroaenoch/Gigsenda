@@ -504,11 +504,15 @@ export default function BookingDetailPage() {
                 </div>
                 <button
                   onClick={() => router.push(`/payment/checkout?bookingId=${booking.id}`)}
+                  onTouchEnd={(e) => { e.preventDefault(); router.push(`/payment/checkout?bookingId=${booking.id}`); }}
                   style={{ touchAction: 'manipulation', WebkitTapHighlightColor: 'transparent' }}
                   className="w-full py-4 px-4 bg-[#FF8C00] text-white font-black text-[16px] rounded-2xl active:opacity-80 shadow-md">
                   Pay Now — ₦{bookingAmount.toLocaleString()}
                 </button>
-                <button onClick={handleCancelBooking} disabled={actionLoading}
+                <button
+                  onClick={handleCancelBooking}
+                  onTouchEnd={(e) => { e.preventDefault(); handleCancelBooking(); }}
+                  disabled={actionLoading}
                   style={{ touchAction: 'manipulation', WebkitTapHighlightColor: 'transparent' }}
                   className="w-full py-2 text-sm text-red-500 disabled:opacity-50">
                   {actionLoading ? "Cancelling..." : "Cancel Booking"}
@@ -585,12 +589,17 @@ export default function BookingDetailPage() {
                   )}
                   <p className="text-xs text-orange-700 mt-1">{getCustomerStatusMessage("in_progress")} — confirm below once done to release payment. Funds auto-release after 72 hours.</p>
                 </div>
-                <button onClick={handleMarkCompleted} disabled={actionLoading}
+                <button
+                  onClick={handleMarkCompleted}
+                  onTouchEnd={(e) => { e.preventDefault(); handleMarkCompleted(); }}
+                  disabled={actionLoading}
                   style={{ touchAction: 'manipulation', WebkitTapHighlightColor: 'transparent' }}
                   className="w-full py-4 px-4 bg-green-500 text-white font-black text-[15px] rounded-2xl active:opacity-80 disabled:opacity-50 shadow-md shadow-green-200">
                   {actionLoading ? "Processing..." : "✅ Service Done — Release Payment to Provider"}
                 </button>
-                <button onClick={() => setShowDisputeModal(true)}
+                <button
+                  onClick={() => setShowDisputeModal(true)}
+                  onTouchEnd={(e) => { e.preventDefault(); setShowDisputeModal(true); }}
                   style={{ touchAction: 'manipulation', WebkitTapHighlightColor: 'transparent' }}
                   className="w-full py-3 px-4 border-2 border-red-300 text-red-500 font-semibold rounded-2xl active:opacity-80 text-sm">
                   ⚠️ Something went wrong — Raise a Dispute
@@ -633,7 +642,9 @@ export default function BookingDetailPage() {
                     <p className="text-xs text-green-700 mt-0.5">{getCustomerStatusMessage("completed")} Payment has been released to the provider.</p>
                   </div>
                 </div>
-                <button onClick={handleLeaveReview}
+                <button
+                  onClick={handleLeaveReview}
+                  onTouchEnd={(e) => { e.preventDefault(); handleLeaveReview(); }}
                   style={{ touchAction: 'manipulation', WebkitTapHighlightColor: 'transparent' }}
                   className="w-full py-4 px-4 bg-[#FF8C00] text-white font-black text-[15px] rounded-2xl active:opacity-80 shadow-md">
                   ⭐ Leave a Review
@@ -668,7 +679,10 @@ export default function BookingDetailPage() {
 
           {/* Cancel button — only while waiting for provider (no payment made) */}
           {isCustomer && booking.status === "pending" && (
-            <button onClick={handleCancelBooking} disabled={actionLoading}
+            <button
+              onClick={handleCancelBooking}
+              onTouchEnd={(e) => { e.preventDefault(); handleCancelBooking(); }}
+              disabled={actionLoading}
               style={{ touchAction: 'manipulation', WebkitTapHighlightColor: 'transparent' }}
               className="w-full py-3 px-4 bg-red-500 text-white font-semibold rounded-2xl active:opacity-80 disabled:opacity-50">
               {actionLoading ? "Cancelling..." : "Cancel Booking"}
@@ -679,7 +693,10 @@ export default function BookingDetailPage() {
           {isProvider && (() => {
             // Provider: payment received, ready to start
             if (booking.status === "paid") return (
-              <button onClick={handleMarkInProgress} disabled={actionLoading}
+              <button
+                onClick={handleMarkInProgress}
+                onTouchEnd={(e) => { e.preventDefault(); handleMarkInProgress(); }}
+                disabled={actionLoading}
                 style={{ touchAction: 'manipulation', WebkitTapHighlightColor: 'transparent' }}
                 className="w-full py-3 px-4 bg-[#FF8C00] text-white font-semibold rounded-2xl active:opacity-80 disabled:opacity-50">
                 {actionLoading ? "Updating..." : "Start Job — Mark In Progress"}
@@ -702,7 +719,9 @@ export default function BookingDetailPage() {
 
           {/* Message button — always visible for active bookings */}
           {!["cancelled", "rejected"].includes(booking.status) && (
-            <button onClick={handleSendMessage}
+            <button
+              onClick={handleSendMessage}
+              onTouchEnd={(e) => { e.preventDefault(); handleSendMessage(); }}
               style={{ touchAction: 'manipulation', WebkitTapHighlightColor: 'transparent' }}
               className="w-full py-3 px-4 border-2 border-gray-200 text-gray-700 font-semibold rounded-2xl active:bg-gray-50 flex items-center justify-center gap-2">
               <MessageSquare className="h-4 w-4" />

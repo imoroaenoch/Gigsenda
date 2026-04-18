@@ -55,6 +55,16 @@
   button, a, [role="button"] {
     touch-action: manipulation;
     -webkit-tap-highlight-color: transparent;
+    -webkit-user-select: none;
+    user-select: none;
+    cursor: pointer;
+  }
+
+  /* Inputs must remain selectable */
+  input, textarea, select {
+    -webkit-user-select: text;
+    user-select: text;
+    touch-action: auto;
   }
   
   html, body {
