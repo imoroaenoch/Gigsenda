@@ -10,7 +10,6 @@ import {
   CreditCard, 
   Settings, 
   LogOut,
-  Bell,
   Search,
   Menu,
   X,
@@ -24,6 +23,7 @@ import Image from "next/image";
 import { auth } from "@/lib/firebase";
 import { signOut } from "firebase/auth";
 import toast from "react-hot-toast";
+import NotificationBell from "@/components/common/NotificationBell";
 
 const navItems = [
   { label: "Dashboard", icon: LayoutDashboard, href: "/admin" },
@@ -41,17 +41,12 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const router = useRouter();
   const { profile } = useAuth();
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
-  const [showNotifications, setShowNotifications] = useState(false);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
-  
-  const notificationRef = useRef<HTMLDivElement>(null);
+
   const profileRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (notificationRef.current && !notificationRef.current.contains(event.target as Node)) {
-        setShowNotifications(false);
-      }
       if (profileRef.current && !profileRef.current.contains(event.target as Node)) {
         setShowProfileMenu(false);
       }
@@ -162,36 +157,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             </div>
 
             <div className="flex items-center gap-4">
-              <div className="relative" ref={notificationRef}>
-                <button 
-                  onClick={() => setShowNotifications(!showNotifications)}
-                  className={`relative p-2 rounded-xl transition-all ${
-                    showNotifications ? "bg-primary/10 text-primary" : "text-text-light hover:text-text hover:bg-gray-50"
-                  }`}
-                >
-                  <Bell className="h-5 w-5" />
-                  <span className="absolute top-2 right-2 h-2 w-2 bg-primary rounded-full border-2 border-white"></span>
-                </button>
-
-                {showNotifications && (
-                  <div className="absolute right-0 mt-3 w-80 bg-white rounded-3xl shadow-2xl border border-gray-100 py-6 px-6 animate-in fade-in zoom-in duration-200">
-                    <div className="flex items-center justify-between mb-6">
-                      <h3 className="text-sm font-black text-text uppercase tracking-widest">Notifications</h3>
-                      <span className="text-[10px] font-black bg-primary/10 text-primary px-2 py-0.5 rounded-full">New</span>
-                    </div>
-                    <div className="space-y-4">
-                      {/* Empty State for now */}
-                      <div className="py-8 text-center bg-gray-50 rounded-2xl border border-dashed border-gray-200">
-                        <Bell className="h-8 w-8 text-gray-300 mx-auto mb-3" />
-                        <p className="text-xs font-bold text-text-light">No new notifications</p>
-                      </div>
-                    </div>
-                    <button className="w-full mt-6 py-3 text-[10px] font-black text-primary hover:bg-primary/5 rounded-xl transition-all uppercase tracking-widest border border-primary/10">
-                      View All Activity
-                    </button>
-                  </div>
-                )}
-              </div>
+              <NotificationBell dropdownSide="right" />
               
               <div className="h-8 w-px bg-gray-200 mx-2"></div>
               

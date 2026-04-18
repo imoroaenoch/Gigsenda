@@ -107,6 +107,54 @@ export const notifyJobCompleted = (
     "/bookings"
   );
 
+// ── Admin notification helpers ───────────────────────────────────────────────
+
+/**
+ * Fetches all admin UIDs and sends each one a notification.
+ */
+export const notifyAdmins = async (
+  title: string,
+  message: string,
+  type: NotifType,
+  link: string
+) => {
+  try {
+    const q = query(
+      collection(db, "users"),
+      where("accountType", "==", "admin")
+    );
+    const snap = await getDocs(q);
+    await Promise.all(
+      snap.docs.map((d) => sendNotification(d.id, title, message, type, link))
+    );
+  } catch (e) {
+    console.error("notifyAdmins error:", e);
+  }
+};
+
+export const notifyAdminNewBooking = (
+  customerName: string,
+  providerName: string,
+  bookingId: string
+) =>
+  notifyAdmins(
+    "New Booking Created",
+    `${customerName} just booked ${providerName}. Review it in Bookings.`,
+    "booking",
+    `/admin/bookings`
+  );
+
+export const notifyAdminNewProvider = (
+  providerName: string,
+  providerId: string
+) =>
+  notifyAdmins(
+    "New Provider Application",
+    `${providerName} has applied to join as a provider. Review their profile.`,
+    "system",
+    `/admin/providers/${providerId}`
+  );
+
 // ── Message event helper ───────────────────────────────────────────────────
 
 export const notifyNewMessage = (

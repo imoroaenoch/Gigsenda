@@ -4,6 +4,8 @@ import {
   notifyNewBooking,
   notifyJobCompleted,
   notifyBookingDeclined,
+  notifyAdminNewBooking,
+  notifyAdminNewProvider,
 } from "./notifications";
 import { 
   collection, 
@@ -222,7 +224,10 @@ export const createProvider = async (uid: string, data: any) => {
       role: "provider",
       hasSetupProfile: true
     });
-    
+
+    // Notify all admins of the new provider application
+    notifyAdminNewProvider(data.name || data.serviceTitle || "A provider", uid);
+
     return { success: true };
   } catch (error) {
     console.error("Error creating provider:", error);
@@ -407,6 +412,8 @@ export const createBooking = async (data: any) => {
 
     // Notify provider of new booking
     notifyNewBooking(data.providerId, data.customerName || "A customer", bookingId);
+    // Notify all admins
+    notifyAdminNewBooking(data.customerName || "A customer", data.providerName || "a provider", bookingId);
 
     return { success: true, id: bookingId, conversationId };
   } catch (error) {
