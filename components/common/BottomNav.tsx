@@ -13,10 +13,10 @@ import { getConversations } from "@/lib/chat";
 import { useAuth } from "@/hooks/useAuth";
 
 const NAV_ITEMS = [
-  { id: "booking", label: "Booking", icon: Calendar, path: "/bookings" },
+  { id: "services", label: "Services", icon: Briefcase, path: "/search" },
   { id: "chat", label: "Chat", icon: MessageSquare, path: "/chat", hasBadge: true },
   { id: "home", label: "Home", icon: HomeIcon, path: "/home" },
-  { id: "services", label: "Services", icon: Briefcase, path: "/search" },
+  { id: "booking", label: "Booking", icon: Calendar, path: "/bookings" },
   { id: "profile", label: "Profile", icon: UserIcon, path: "/profile" },
 ];
 

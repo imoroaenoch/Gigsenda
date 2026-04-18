@@ -227,8 +227,8 @@ export default function BookingsPage() {
       <main className="min-h-screen bg-[#FAFAFA] pb-28 lg:pb-8">
 
         {/* ── Header ── */}
-        <header className="sticky top-0 z-50 bg-white border-b border-gray-100 px-5 pt-12 pb-3 lg:pt-6 lg:px-8">
-          <div className="flex items-center gap-3 mb-5">
+        <header className="sticky top-0 z-50 bg-white border-b border-gray-100 px-5 pt-5 pb-3 lg:pt-6 lg:px-8">
+          <div className="flex items-center gap-3 mb-3">
             <button onClick={() => router.push("/home")} className="rounded-full p-2 hover:bg-gray-100">
               <ArrowLeft className="h-5 w-5 text-gray-600" />
             </button>
@@ -301,7 +301,14 @@ export default function BookingsPage() {
                   <div
                     key={booking.id}
                     onClick={() => router.push(`/bookings/${booking.id}`)}
-                    className="bg-white rounded-2xl border border-gray-100 shadow-sm cursor-pointer transition-all hover:shadow-md hover:border-gray-200 overflow-hidden"
+                    className={`bg-white rounded-2xl border-2 shadow-sm cursor-pointer transition-all hover:shadow-md overflow-hidden ${
+                      ns === "accepted"    ? "border-amber-300" :
+                      ns === "paid"        ? "border-blue-300" :
+                      ns === "in_progress" ? "border-indigo-300" :
+                      ns === "completed"   ? "border-emerald-300" :
+                      ns === "pending"     ? "border-gray-200" :
+                      "border-gray-200"
+                    }`}
                   >
                     {/* Action banners — one per status, tells customer exactly where they are */}
                     {ns === "pending" && (

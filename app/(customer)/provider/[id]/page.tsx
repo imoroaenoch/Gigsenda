@@ -116,7 +116,7 @@ export default function ProviderProfilePage() {
   const renderTabContent = () => {
     switch (activeTab) {
       case "About": return (
-        <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+        <div>
           <h2 className="text-lg font-semibold text-text">About {provider.name}</h2>
           <p className="mt-4 text-[13px] font-semibold text-text leading-[1.6]">{provider.bio}</p>
           <div className="mt-8 flex items-center justify-between">
@@ -131,11 +131,11 @@ export default function ProviderProfilePage() {
             </div>
             <div className="flex gap-2">
               <button onClick={handleStartChat} disabled={isStartingChat}
-                className="flex h-10 w-10 items-center justify-center rounded-full border-2 border-primary/10 text-primary hover:bg-primary/5 transition-colors active:scale-90 disabled:opacity-50">
+                className="touch-manipulation flex h-10 w-10 items-center justify-center rounded-full border-2 border-primary/10 text-primary active:opacity-70 disabled:opacity-50">
                 {isStartingChat ? <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent" /> : <MessageSquare className="h-5 w-5" />}
               </button>
               <button onClick={() => toast.success("Phone calls are disabled. Please use in-app chat.")}
-                className="flex h-10 w-10 items-center justify-center rounded-full border-2 border-primary/10 text-primary hover:bg-primary/5 transition-colors active:scale-90">
+                className="touch-manipulation flex h-10 w-10 items-center justify-center rounded-full border-2 border-primary/10 text-primary active:opacity-70">
                 <Phone className="h-5 w-5" />
               </button>
             </div>
@@ -190,7 +190,7 @@ export default function ProviderProfilePage() {
         </div>
       );
       case "Reviews": return (
-        <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 space-y-6">
+        <div className="space-y-6">
           <div className="flex items-center justify-between">
             <h2 className="text-lg font-semibold text-text">Customer Reviews</h2>
             <div className="flex items-center gap-1.5 rounded-xl bg-orange-50 px-3 py-1.5">
@@ -236,7 +236,7 @@ export default function ProviderProfilePage() {
         </div>
       );
       case "Availability": return (
-        <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+        <div>
           <h2 className="text-lg font-semibold text-text">Availability</h2>
           {provider.availability && provider.availability.length > 0 ? (
             <div className="mt-4 space-y-3">
@@ -273,7 +273,7 @@ export default function ProviderProfilePage() {
         </div>
       );
       case "Experience": return (
-        <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 space-y-6">
+        <div className="space-y-6">
           <h2 className="text-lg font-semibold text-text">Experience</h2>
 
           {/* Years of experience */}
@@ -344,7 +344,7 @@ export default function ProviderProfilePage() {
         </div>
       );
       default: return (
-        <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 flex flex-col items-center py-20 text-center">
+        <div className="flex flex-col items-center py-20 text-center">
           <div className="rounded-full bg-gray-50 p-8 text-gray-200 mb-4"><Zap className="h-10 w-10" /></div>
           <h3 className="text-base font-semibold text-text">{activeTab} coming soon</h3>
           <p className="text-xs font-medium text-text-light mt-1">We are currently building this section.</p>
@@ -385,7 +385,7 @@ export default function ProviderProfilePage() {
         } catch { toast.error("Failed to update favorites"); }
         finally { setFavLoading(false); }
       }}
-      className={`flex items-center justify-center rounded-2xl border-2 border-gray-100 text-gray-400 hover:border-primary/20 hover:text-primary transition-all active:scale-90 disabled:opacity-50 ${size === "sm" ? "h-10 w-10" : "h-14 w-14"}`}>
+      className={`touch-manipulation flex items-center justify-center rounded-2xl border-2 border-gray-100 text-gray-400 active:opacity-70 disabled:opacity-50 ${size === "sm" ? "h-10 w-10" : "h-14 w-14"}`}>
       <Star className={`transition-colors ${size === "sm" ? "h-5 w-5" : "h-6 w-6"} ${isFavorite ? "fill-primary text-primary" : ""}`} />
     </button>
   );
@@ -395,15 +395,15 @@ export default function ProviderProfilePage() {
       <main className="min-h-screen bg-[#FFF8F0] pb-28 lg:pb-0 overflow-x-hidden">
 
         {/* ── MOBILE header (floating over hero) ── */}
-        <header className="fixed top-0 z-50 w-full px-4 pt-4 pb-4 flex items-center justify-between pointer-events-none lg:hidden">
-          <button onClick={() => router.back()} className="pointer-events-auto flex h-10 w-10 items-center justify-center rounded-xl bg-white shadow-sm border border-gray-100 active:scale-95 transition-all">
+        <header className="fixed top-0 z-50 w-full px-4 pt-4 pb-4 flex items-center justify-between lg:hidden">
+          <button onClick={() => router.back()} className="touch-manipulation flex h-10 w-10 items-center justify-center rounded-xl bg-white shadow-sm border border-gray-100 active:opacity-70">
             <ChevronLeft className="h-5 w-5 text-text" />
           </button>
           <div className="flex flex-col items-center">
             <h1 className="text-base font-semibold text-white leading-tight">{provider.name}</h1>
             <p className="text-[10px] font-medium text-white/80">{provider.specialization}</p>
           </div>
-          <button onClick={handleShare} className="pointer-events-auto flex h-10 w-10 items-center justify-center rounded-xl bg-white shadow-sm border border-gray-100 active:scale-95 transition-all">
+          <button onClick={handleShare} className="touch-manipulation flex h-10 w-10 items-center justify-center rounded-xl bg-white shadow-sm border border-gray-100 active:opacity-70">
             <Share2 className="h-5 w-5 text-text" />
           </button>
         </header>
@@ -431,7 +431,7 @@ export default function ProviderProfilePage() {
               <div className="mt-2 rounded-lg bg-primary px-3 py-1 text-[11px] font-medium text-white shadow-lg shadow-primary/20">&#8358;{provider.price.toLocaleString()}/service</div>
             </div>
             <div className="relative h-full w-full">
-              <Image src={provider.image} alt={provider.name} fill className="object-cover object-center transition-transform duration-700 hover:scale-105" priority />
+              <Image src={provider.image} alt={provider.name} fill className="object-cover object-center" priority />
               <div className="absolute bottom-0 left-0 h-1/3 w-full bg-gradient-to-t from-[#FFF8F0] to-transparent" />
             </div>
           </div>
@@ -492,12 +492,15 @@ export default function ProviderProfilePage() {
         </div>
 
         {/* ── MOBILE sheet + tabs ── */}
-        <section className="relative -mt-4 min-h-[500px] w-full rounded-t-[2.5rem] bg-white px-6 pt-8 shadow-[0_-10px_40px_rgba(0,0,0,0.04)] z-30 lg:hidden">
+        <section className="relative -mt-4 min-h-[500px] w-full rounded-t-[2.5rem] bg-white px-6 pt-8 z-30 lg:hidden" style={{ boxShadow: '0 -10px 40px rgba(0,0,0,0.04)' }}>
           <div className="absolute top-3 left-1/2 -translate-x-1/2 h-1.5 w-12 rounded-full bg-primary/20" />
           <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-hide">
             {tabs.map(tab => (
-              <button key={tab} onClick={() => setActiveTab(tab)}
-                className={`px-5 py-2.5 rounded-full text-[13px] font-medium transition-all whitespace-nowrap ${activeTab === tab ? "bg-[#FFF4E5] text-primary shadow-sm" : "bg-gray-50 text-text-light hover:bg-gray-100"}`}>
+              <button
+                key={tab}
+                onClick={() => setActiveTab(tab)}
+                style={{ touchAction: 'manipulation', WebkitTapHighlightColor: 'transparent', cursor: 'pointer' }}
+                className={`px-5 py-2.5 rounded-full text-[13px] font-medium whitespace-nowrap ${activeTab === tab ? "bg-[#FFF4E5] text-primary shadow-sm" : "bg-gray-50 text-text-light"}`}>
                 {tab}
               </button>
             ))}
@@ -519,9 +522,11 @@ export default function ProviderProfilePage() {
         </div>
 
         {/* ── MOBILE sticky footer ── */}
-        <footer className="fixed bottom-0 left-0 w-full bg-white/80 backdrop-blur-xl border-t border-gray-100 px-6 py-4 flex items-center gap-4 z-50 lg:hidden">
-          <button onClick={() => router.push(`/book/${provider.id}`)}
-            className="flex-1 flex items-center justify-center gap-2 h-14 rounded-2xl bg-gradient-to-r from-[#FF9A3E] to-[#FF8C00] text-white font-medium text-[15px] shadow-xl shadow-primary/20 hover:scale-[1.02] active:scale-95 transition-all">
+        <footer className="fixed bottom-0 left-0 w-full bg-white border-t border-gray-100 px-6 py-4 flex items-center gap-4 z-50 lg:hidden">
+          <button
+            onClick={() => router.push(`/book/${provider.id}`)}
+            style={{ WebkitTapHighlightColor: 'transparent', touchAction: 'manipulation' }}
+            className="touch-manipulation flex-1 flex items-center justify-center gap-2 h-14 rounded-2xl bg-gradient-to-r from-[#FF9A3E] to-[#FF8C00] text-white font-medium text-[15px] shadow-xl shadow-primary/20 active:opacity-80">
             <Calendar className="h-5 w-5" />
             Hire {provider.name.split(" ")[0]}
           </button>

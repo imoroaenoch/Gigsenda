@@ -50,10 +50,17 @@
   * {
     font-family: 'Brighter Sans', sans-serif;
   }
+
+  /* Eliminate 300ms tap delay on ALL buttons and links globally */
+  button, a, [role="button"] {
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+  }
   
   html, body {
     font-family: 'Brighter Sans', sans-serif;
     background-color: #ffffff;
+    touch-action: manipulation;
   }
   
   h1, h2, h3, h4, h5, h6 {
