@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="92.16" fill="#FF8C00"/>
+  <text x="50%" y="54%" font-family="Arial Black, Arial, sans-serif" font-weight="900" font-size="266.24" fill="white" text-anchor="middle" dominant-baseline="middle">G</text>
+  <polygon points="296.96,112.64 245.76,245.76 286.72,245.76 215.04,399.36 317.44,225.28 266.24,225.28" fill="white" opacity="0.3"/>
+</svg>

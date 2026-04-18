@@ -69,7 +69,19 @@
   html, body {
     font-family: 'Brighter Sans', sans-serif;
     background-color: #ffffff;
+    overscroll-behavior: none;
+    -webkit-overflow-scrolling: touch;
   }
+
+  /* Hide scrollbars for native-app feel */
+  ::-webkit-scrollbar { display: none; }
+  * { scrollbar-width: none; -ms-overflow-style: none; }
+
+  /* Smooth scrolling */
+  html { scroll-behavior: smooth; }
+
+  /* No tap highlight on interactive UI chrome */
+  button, nav, header { -webkit-tap-highlight-color: transparent; }
 
   /* iOS auto-zoom fix: Safari zooms in when input font-size < 16px.
      Setting font-size to 16px on all inputs prevents this without
