@@ -299,10 +299,10 @@ export default function HomePage() {
 
   return (
     <AuthGuard>
-      <main className="min-h-screen bg-white pb-24 lg:pb-8 overflow-x-hidden">
+      <main className="min-h-screen bg-white pb-24 lg:pb-8 overflow-x-hidden [html.dark_&]:bg-[#111111]">
 
         {/* ── MOBILE STICKY TOP BAR ── */}
-        <div className="lg:hidden fixed top-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-sm border-b border-gray-100 shadow-sm">
+        <div className="lg:hidden fixed top-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-sm border-b border-gray-100 shadow-sm [html.dark_&]:bg-[#1a1a1a]/97 [html.dark_&]:border-[#2a2a2a]">
           <div className="flex items-center justify-between px-4 pt-4 pb-3">
             <div className="flex items-center gap-1.5">
               <h1 className="text-[22px] font-black tracking-tight text-gray-900">Gigsenda</h1>
@@ -470,7 +470,7 @@ export default function HomePage() {
                     </div>
                     <button
                       onClick={() => router.push("/search")}
-                      className="mt-3 flex items-center gap-1.5 w-fit rounded-full bg-white pl-4 pr-1.5 py-1.5 text-[11px] font-bold text-black shadow-sm active:scale-95 transition-all"
+                      className="hero-card-btn mt-3 flex items-center gap-1.5 w-fit rounded-full bg-white pl-4 pr-1.5 py-1.5 text-[11px] font-bold text-black shadow-sm active:scale-95 transition-all"
                     >
                       {slide.buttonText}
                       <span className="flex h-5 w-5 items-center justify-center rounded-full bg-black flex-shrink-0">
@@ -508,7 +508,7 @@ export default function HomePage() {
         {/* ── SERVICES / CATEGORY FILTER ── */}
         <section className="mt-8 lg:mt-10">
           <div className="max-w-7xl mx-auto px-4 lg:px-8">
-            <div className="bg-gray-50 rounded-2xl border border-gray-100 p-4 lg:p-6">
+            <div className="category-strip bg-gray-50 rounded-2xl border border-gray-100 p-4 lg:p-6">
               <div className="flex items-center justify-between mb-3">
                 <h2 className="text-[15px] font-black text-gray-900">Our Services</h2>
                 <button
@@ -522,7 +522,7 @@ export default function HomePage() {
                 <button
                   onClick={() => setActiveCategory("all")}
                   className={`flex items-center gap-1.5 whitespace-nowrap rounded-full px-4 py-1.5 text-[11px] font-semibold transition-all ${
-                    activeCategory === "all" ? "bg-primary text-white" : "bg-gray-100 text-gray-500 border border-gray-300"
+                    activeCategory === "all" ? "bg-primary text-white" : "category-pill-inactive bg-gray-100 text-gray-500 border border-gray-300"
                   }`}
                 >
                   <Zap className="h-3 w-3" />
@@ -536,7 +536,7 @@ export default function HomePage() {
                       key={cat.id}
                       onClick={() => setActiveCategory(cat.name)}
                       className={`flex items-center gap-1.5 whitespace-nowrap rounded-full px-4 py-1.5 text-[11px] font-semibold transition-all ${
-                        isActive ? "bg-primary text-white" : "bg-gray-100 text-gray-500 border border-gray-300"
+                        isActive ? "bg-primary text-white" : "category-pill-inactive bg-gray-100 text-gray-500 border border-gray-300"
                       }`}
                     >
                       <IconComp className="h-3 w-3" />
@@ -562,7 +562,7 @@ export default function HomePage() {
                   <div
                     key={provider.id}
                     onClick={() => router.push(`/provider/${provider.id}`)}
-                    className={`w-[168px] flex-shrink-0 lg:w-auto lg:flex-shrink group relative rounded-2xl bg-white p-2.5 shadow-[0_6px_18px_-2px_rgba(0,0,0,0.10)] hover:shadow-[0_10px_24px_-2px_rgba(0,0,0,0.14)] border border-gray-100/60 transition-all duration-200 cursor-pointer ${index === filteredProviders.length - 1 ? 'mr-4 lg:mr-0' : ''}`}
+                    className={`provider-card w-[168px] flex-shrink-0 lg:w-auto lg:flex-shrink group relative rounded-2xl bg-white p-2.5 shadow-[0_6px_18px_-2px_rgba(0,0,0,0.10)] hover:shadow-[0_10px_24px_-2px_rgba(0,0,0,0.14)] border border-gray-100/60 transition-all duration-200 cursor-pointer ${index === filteredProviders.length - 1 ? 'mr-4 lg:mr-0' : ''}`}
                   >
                     <div className="relative h-[110px] lg:h-auto lg:aspect-[4/3] w-full rounded-xl overflow-hidden mb-3 bg-gray-50">
                       {provider.photoURL || provider.image ? (
@@ -644,7 +644,7 @@ export default function HomePage() {
               onClick={() => setIsMenuOpen(false)}
             />
             {/* Sheet */}
-            <div className="fixed bottom-0 left-0 right-0 z-50 rounded-t-[2.5rem] bg-white px-5 pt-5 pb-10 shadow-2xl animate-in slide-in-from-bottom-4 duration-300">
+            <div className="fixed bottom-0 left-0 right-0 z-50 rounded-t-[2.5rem] bg-white px-5 pt-5 pb-10 shadow-2xl animate-in slide-in-from-bottom-4 duration-300 [html.dark_&]:bg-[#1a1a1a]">
               {/* Handle + header */}
               <div className="mb-5 flex items-center justify-between">
                 <div className="absolute top-3 left-1/2 -translate-x-1/2 h-1 w-10 rounded-full bg-gray-200" />

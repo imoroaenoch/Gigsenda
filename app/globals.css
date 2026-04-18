@@ -94,6 +94,132 @@
   --text: #333333;
 }
 
+/* ── Dark Mode ─────────────────────────────────────────────────────── */
+html.dark {
+  color-scheme: dark;
+}
+
+html.dark body {
+  background-color: #111111;
+  color: #f0f0f0;
+}
+
+/* ── Page / section backgrounds ── */
+html.dark .bg-white        { background-color: #1c1c1c !important; }
+html.dark .bg-gray-50      { background-color: #181818 !important; }
+html.dark .bg-gray-100     { background-color: #252525 !important; }
+html.dark .bg-gray-200     { background-color: #2e2e2e !important; }
+html.dark .bg-\[#FFFDF7\]  { background-color: #111111 !important; }
+html.dark .bg-\[#FFFDF5\]  { background-color: #111111 !important; }
+html.dark .bg-\[#FFF4E5\]  { background-color: #1e1400 !important; }
+html.dark .bg-\[#FFF8F0\]  { background-color: #1a1200 !important; }
+
+/* ── Borders ── */
+html.dark .border-gray-100  { border-color: #282828 !important; }
+html.dark .border-gray-200  { border-color: #333333 !important; }
+html.dark .border-gray-300  { border-color: #3a3a3a !important; }
+
+/* ── Text ── */
+html.dark .text-text       { color: #f0f0f0 !important; }
+html.dark .text-text-light { color: #999999 !important; }
+html.dark .text-gray-400   { color: #777777 !important; }
+html.dark .text-gray-500   { color: #888888 !important; }
+html.dark .text-gray-600   { color: #aaaaaa !important; }
+html.dark .text-gray-700   { color: #cccccc !important; }
+html.dark .text-gray-900   { color: #f0f0f0 !important; }
+html.dark .text-gray-800   { color: #e0e0e0 !important; }
+
+/* ── Inputs ── */
+html.dark input, html.dark textarea, html.dark select {
+  background-color: #1f1f1f !important;
+  color: #f0f0f0 !important;
+  border-color: #333333 !important;
+}
+
+/* ── Dividers ── */
+html.dark .divide-gray-50 > * + *  { border-color: #252525 !important; }
+html.dark .divide-gray-100 > * + * { border-color: #252525 !important; }
+
+/* ── Semi-transparent / opacity-variant surfaces ── */
+html.dark .bg-white\/90,
+html.dark .bg-white\/95  { background-color: rgba(20,20,20,0.95) !important; }
+html.dark .bg-gray-50\/50,
+html.dark .bg-gray-50\/60 { background-color: rgba(30,30,30,0.7) !important; }
+
+/* ── Custom hex backgrounds ── */
+html.dark .bg-\[\#FAFAFA\]  { background-color: #111111 !important; }
+html.dark .bg-\[\#FFF8F0\]  { background-color: #111111 !important; }
+html.dark .bg-\[\#FFF4E5\]\/50 { background-color: rgba(30,18,0,0.6) !important; }
+
+/* ── Sticky headers / footers ── */
+html.dark header.sticky,
+html.dark header[class*="sticky"],
+html.dark header[class*="fixed"],
+html.dark footer[class*="fixed"],
+html.dark nav[class*="fixed"] {
+  background-color: rgba(18,18,18,0.97) !important;
+  border-color: #2a2a2a !important;
+}
+
+/* ── Booking page: status banner strips ── */
+html.dark .booking-banner-pending  { background-color: #1e1e1e !important; border-color: #2a2a2a !important; }
+html.dark .booking-banner-accepted { background-color: #1a1200 !important; border-color: #3a2800 !important; }
+html.dark .booking-banner-paid     { background-color: #00112a !important; border-color: #002850 !important; }
+html.dark .booking-banner-progress { background-color: #0a0a1a !important; border-color: #1a1a3a !important; }
+html.dark .booking-banner-done     { background-color: #001a0d !important; border-color: #003320 !important; }
+
+/* ── Booking cards ── */
+html.dark .booking-card {
+  background-color: #1c1c1c !important;
+  border-color: #2e2e2e !important;
+}
+html.dark .booking-card .border-t { border-color: #2a2a2a !important; }
+
+/* ── Provider profile stat cards ── */
+html.dark .stat-card-surface {
+  background-color: #1c1c1c !important;
+  border-color: currentColor !important;
+}
+
+/* ── Pricing tier buttons (inactive) ── */
+html.dark .pricing-tier-inactive {
+  background-color: #1e1e1e !important;
+  border-color: #2a2a2a !important;
+}
+html.dark .pricing-tier-inactive p.text-text { color: #f0f0f0 !important; }
+
+/* ── Hero card CTA buttons: always white bg + dark text, never inverted ── */
+html.dark .hero-card-btn {
+  background-color: #ffffff !important;
+  color: #111111 !important;
+}
+html.dark .hero-card-btn span {
+  background-color: #111111 !important;
+}
+
+/* ── Category section (Our Services pill strip) ── */
+html.dark .category-strip {
+  background-color: #1a1a1a !important;
+  border-color: #2a2a2a !important;
+}
+html.dark .category-pill-inactive {
+  background-color: #252525 !important;
+  border-color: #353535 !important;
+  color: #aaaaaa !important;
+}
+
+/* ── Provider cards: softer surface + invisible border ── */
+html.dark .provider-card {
+  background-color: #1e1e1e !important;
+  border-color: #2a2a2a !important;
+  box-shadow: 0 4px 14px -2px rgba(0,0,0,0.45) !important;
+}
+html.dark .provider-card h3 { color: #f0f0f0 !important; }
+html.dark .provider-card .text-gray-600 { color: #999999 !important; }
+html.dark .provider-card .text-gray-400 { color: #666666 !important; }
+html.dark .provider-card .bg-gray-50 { background-color: #2a2a2a !important; }
+html.dark .provider-card .text-gray-200 { color: #444444 !important; }
+
 @layer utilities {
   .scrollbar-hide::-webkit-scrollbar {
     display: none;

@@ -36,6 +36,8 @@ import { auth } from "@/lib/firebase";
 import { updatePassword, reauthenticateWithCredential, EmailAuthProvider } from "firebase/auth";
 import { db } from "@/lib/firebase";
 import { doc, updateDoc } from "firebase/firestore";
+import { useTheme } from "@/hooks/useTheme";
+import { Moon, Sun } from "lucide-react";
 
 export default function CustomerProfilePage() {
   const router = useRouter();
@@ -84,6 +86,7 @@ export default function CustomerProfilePage() {
   const [uploadedPhotoURL, setUploadedPhotoURL] = useState<string | null>(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [isDeletingAccount, setIsDeletingAccount] = useState(false);
+  const { theme, toggleTheme } = useTheme();
 
   useEffect(() => {
     if (profile) {
@@ -491,6 +494,27 @@ export default function CustomerProfilePage() {
                   </button>
                 </div>
               ))}
+            </div>
+          </section>
+
+          {/* Theme */}
+          <section className="rounded-3xl bg-white p-6 shadow-sm border border-gray-100">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gray-100">
+                  {theme === "dark" ? <Moon className="h-5 w-5 text-primary" /> : <Sun className="h-5 w-5 text-primary" />}
+                </div>
+                <div>
+                  <h3 className="font-bold text-text text-[14px]">Theme</h3>
+                  <p className="text-[11px] font-medium text-text-light capitalize">{theme === "dark" ? "Dark mode" : "Light mode"}</p>
+                </div>
+              </div>
+              <button
+                onClick={toggleTheme}
+                className={`relative h-7 w-13 min-w-[52px] rounded-full transition-colors ${theme === "dark" ? "bg-primary" : "bg-gray-200"}`}
+              >
+                <div className={`absolute top-1 h-5 w-5 rounded-full bg-white shadow transition-all ${theme === "dark" ? "left-[28px]" : "left-1"}`} />
+              </button>
             </div>
           </section>
 

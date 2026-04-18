@@ -14,7 +14,7 @@ import ProviderBottomNav from "@/components/provider/ProviderBottomNav";
 import { db } from "@/lib/firebase";
 import { collection, query, where, onSnapshot, getDoc, doc } from "firebase/firestore";
 import { format } from "date-fns";
-import { getProviderStatusLabel, getStatusColor } from "@/lib/booking-status";
+import { getProviderStatusLabel, getStatusColor, normaliseStatus } from "@/lib/booking-status";
 
 type TabId = "all" | "pending" | "accepted" | "paid" | "in_progress" | "completed" | "cancelled";
 
@@ -82,11 +82,8 @@ function ProviderBookingsPage() {
   const filtered = activeTab === "all"
     ? bookings
     : activeTab === "cancelled"
-    ? bookings.filter((b: any) => ["cancelled", "rejected", "disputed"].includes(b.status))
-    : bookings.filter((b: any) => {
-        const s = b.status === "upcoming" ? "paid" : b.status;
-        return s === activeTab;
-      });
+    ? bookings.filter((b: any) => ["cancelled", "rejected", "disputed", "refunded"].includes(normaliseStatus(b.status)))
+    : bookings.filter((b: any) => normaliseStatus(b.status) === activeTab);
 
   const fmtDate = (ts: any) => {
     if (!ts) return "—";
@@ -109,10 +106,7 @@ function ProviderBookingsPage() {
             </div>
             <div className="hidden lg:flex items-center gap-2">
               {(["pending", "accepted", "paid", "in_progress", "completed"] as string[]).map(key => {
-                const count = bookings.filter((b: any) => {
-                  const s = b.status === "upcoming" ? "paid" : b.status;
-                  return s === key;
-                }).length;
+                const count = bookings.filter((b: any) => normaliseStatus(b.status) === key).length;
                 if (count === 0) return null;
                 return (
                   <span key={key} className={`text-[11px] font-black px-3 py-1 rounded-full ${getStatusColor(key)}`}>
@@ -131,11 +125,8 @@ function ProviderBookingsPage() {
               const count = tab.id === "all"
                 ? bookings.length
                 : tab.id === "cancelled"
-                ? bookings.filter((b: any) => ["cancelled", "rejected", "disputed"].includes(b.status)).length
-                : bookings.filter((b: any) => {
-                    const s = b.status === "upcoming" ? "paid" : b.status;
-                    return s === tab.id;
-                  }).length;
+                ? bookings.filter((b: any) => ["cancelled", "rejected", "disputed", "refunded"].includes(normaliseStatus(b.status))).length
+                : bookings.filter((b: any) => normaliseStatus(b.status) === tab.id).length;
               return (
                 <button
                   key={tab.id}

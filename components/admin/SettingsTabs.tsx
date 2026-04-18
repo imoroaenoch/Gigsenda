@@ -9,6 +9,7 @@ import {
   Palette, 
   Cog, 
   User,
+  Moon,
   ChevronRight 
 } from "lucide-react";
 
@@ -61,6 +62,12 @@ const TABS: TabItem[] = [
     label: "Admin Account",
     icon: User,
     description: "Password, email, security settings"
+  },
+  {
+    id: "theme",
+    label: "Theme",
+    icon: Moon,
+    description: "Light or dark mode"
   },
 ];
 

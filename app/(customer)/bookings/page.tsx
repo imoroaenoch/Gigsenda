@@ -229,10 +229,10 @@ export default function BookingsPage() {
   // ── Render ───────────────────────────────────────────────────────────────
   return (
     <AuthGuard>
-      <main className="min-h-screen bg-[#FAFAFA] pb-28 lg:pb-8">
+      <main className="min-h-screen bg-[#FAFAFA] pb-28 lg:pb-8 [html.dark_&]:bg-[#111111]">
 
         {/* ── Header ── */}
-        <header className="sticky top-0 z-50 bg-white border-b border-gray-100 px-5 pt-5 pb-3 lg:pt-6 lg:px-8">
+        <header className="sticky top-0 z-50 bg-white border-b border-gray-100 px-5 pt-5 pb-3 lg:pt-6 lg:px-8 [html.dark_&]:bg-[#1a1a1a] [html.dark_&]:border-[#2a2a2a]">
           <div className="flex items-center gap-3 mb-3">
             <button onClick={() => router.push("/home")} style={{ touchAction: 'manipulation', WebkitTapHighlightColor: 'transparent' }} className="rounded-full p-2 active:opacity-70">
               <ArrowLeft className="h-5 w-5 text-gray-600" />
@@ -308,7 +308,7 @@ export default function BookingsPage() {
                     key={booking.id}
                     onClick={() => router.push(`/bookings/${booking.id}`)}
                     style={{ touchAction: 'manipulation', WebkitTapHighlightColor: 'transparent', cursor: 'pointer' }}
-                    className={`bg-white rounded-2xl border-2 shadow-sm overflow-hidden active:opacity-90 ${
+                    className={`booking-card bg-white rounded-2xl border-2 shadow-sm overflow-hidden active:opacity-90 ${
                       ns === "accepted"    ? "border-amber-300" :
                       ns === "paid"        ? "border-blue-300" :
                       ns === "in_progress" ? "border-indigo-300" :
@@ -318,37 +318,37 @@ export default function BookingsPage() {
                   >
                     {/* Action banners — one per status, tells customer exactly where they are */}
                     {ns === "pending" && (
-                      <div className="bg-gray-50 border-b border-gray-100 px-4 py-2 flex items-center justify-between">
+                      <div className="booking-banner-pending bg-gray-50 border-b border-gray-100 px-4 py-2 flex items-center justify-between">
                         <p className="text-[11px] font-semibold text-gray-500">⏳ Waiting for provider to accept your booking</p>
                         <ChevronRight className="h-3.5 w-3.5 text-gray-300" />
                       </div>
                     )}
                     {ns === "accepted" && booking.paymentStatus !== "success" && (
-                      <div className="bg-amber-50 border-b border-amber-100 px-4 py-2 flex items-center justify-between">
+                      <div className="booking-banner-accepted bg-amber-50 border-b border-amber-100 px-4 py-2 flex items-center justify-between">
                         <p className="text-[11px] font-semibold text-amber-700">⚡ Provider accepted — tap to pay and confirm</p>
                         <ChevronRight className="h-3.5 w-3.5 text-amber-400" />
                       </div>
                     )}
                     {ns === "paid" && (
-                      <div className="bg-blue-50 border-b border-blue-100 px-4 py-2 flex items-center justify-between">
+                      <div className="booking-banner-paid bg-blue-50 border-b border-blue-100 px-4 py-2 flex items-center justify-between">
                         <p className="text-[11px] font-semibold text-blue-600">✅ Payment confirmed — waiting for provider to start</p>
                         <ChevronRight className="h-3.5 w-3.5 text-blue-400" />
                       </div>
                     )}
                     {ns === "in_progress" && (
-                      <div className="bg-indigo-50 border-b border-indigo-100 px-4 py-2 flex items-center justify-between">
+                      <div className="booking-banner-progress bg-indigo-50 border-b border-indigo-100 px-4 py-2 flex items-center justify-between">
                         <p className="text-[11px] font-semibold text-indigo-600">🔧 Service in progress — tap to manage or confirm done</p>
                         <ChevronRight className="h-3.5 w-3.5 text-indigo-400" />
                       </div>
                     )}
                     {ns === "completed" && (
-                      <div className="bg-emerald-50 border-b border-emerald-100 px-4 py-2 flex items-center justify-between">
+                      <div className="booking-banner-done bg-emerald-50 border-b border-emerald-100 px-4 py-2 flex items-center justify-between">
                         <p className="text-[11px] font-semibold text-emerald-600">✅ Service completed — leave a review for your provider</p>
                         <ChevronRight className="h-3.5 w-3.5 text-emerald-400" />
                       </div>
                     )}
                     {(ns === "cancelled" || ns === "rejected") && (
-                      <div className="bg-gray-50 border-b border-gray-100 px-4 py-2 flex items-center justify-between">
+                      <div className="booking-banner-pending bg-gray-50 border-b border-gray-100 px-4 py-2 flex items-center justify-between">
                         <p className="text-[11px] font-semibold text-gray-400">⚫ {ns === "rejected" ? "Provider declined this request" : "This booking was cancelled"}</p>
                         <ChevronRight className="h-3.5 w-3.5 text-gray-300" />
                       </div>
@@ -478,7 +478,7 @@ export default function BookingsPage() {
         )}
 
         {/* Bottom Navigation */}
-        <nav className="lg:hidden fixed bottom-0 left-0 right-0 flex items-center justify-around bg-white px-4 py-3 border-t border-gray-100 shadow-[0_-4px_20px_rgba(0,0,0,0.06)] z-50">
+        <nav className="lg:hidden fixed bottom-0 left-0 right-0 flex items-center justify-around bg-white px-4 py-3 border-t border-gray-100 shadow-[0_-4px_20px_rgba(0,0,0,0.06)] z-50 [html.dark_&]:bg-[#1a1a1a] [html.dark_&]:border-[#2a2a2a]">
           <button className="flex flex-col items-center gap-1 text-[#FF8C00]">
             <div className="p-1 rounded-xl bg-[#FF8C00]/10"><Calendar className="h-5 w-5" /></div>
             <span className="text-[9px] font-black uppercase tracking-widest">Bookings</span>

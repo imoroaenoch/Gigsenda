@@ -454,7 +454,6 @@ export default function ProviderProfilePage() {
         {/* ── MOBILE full-bleed hero ── */}
         <section className="relative h-[480px] w-full overflow-hidden lg:hidden">
           <div className="relative h-full w-full flex justify-center items-end">
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-primary/10 via-transparent to-transparent z-10" />
             <div className="absolute top-28 right-6 z-30 flex flex-col items-end pointer-events-none">
               <div className="flex items-center gap-1.5"><Zap className="h-3.5 w-3.5 fill-primary/20 text-primary" /><span className="text-[10px] font-medium text-white uppercase tracking-tight">{provider.category}</span></div>
               <h3 className="text-lg font-semibold text-white mt-0.5">{provider.name}</h3>
@@ -463,12 +462,12 @@ export default function ProviderProfilePage() {
             </div>
             <div className="relative h-full w-full">
               <Image src={provider.image} alt={provider.name} fill sizes="100vw" quality={100} className="object-cover object-top" priority />
-              <div className="absolute bottom-0 left-0 h-1/3 w-full bg-gradient-to-t from-[#FFF8F0] to-transparent" />
+              <div className="absolute bottom-0 left-0 h-1/3 w-full bg-gradient-to-t from-[#FFF8F0] to-transparent [html.dark_&]:from-[#111111]" />
             </div>
           </div>
           <div className="absolute bottom-6 left-0 w-full px-4 flex justify-between gap-3 z-40">
             {statCards.map(card => (
-              <div key={card.label} className={`flex-1 rounded-[1.5rem] bg-white p-3 shadow-xl shadow-black/5 border-2 ${card.borderColor} flex flex-col items-start gap-1`}>
+              <div key={card.label} className={`stat-card-surface flex-1 rounded-[1.5rem] bg-white p-3 shadow-xl shadow-black/5 border-2 ${card.borderColor} flex flex-col items-start gap-1`}>
                 <div className={`h-8 w-8 rounded-xl ${card.bg} flex items-center justify-center border-2 ${card.borderColor}`}><card.icon className={`h-4 w-4 ${card.iconColor}`} /></div>
                 <div className="mt-1">
                   {card.customValue ? card.customValue : <p className="text-[13px] font-semibold text-text leading-tight">{card.value}</p>}
@@ -525,7 +524,7 @@ export default function ProviderProfilePage() {
         </div>
 
         {/* ── MOBILE sheet + tabs ── */}
-        <section className="relative -mt-4 min-h-[500px] w-full rounded-t-[2.5rem] bg-white px-6 pt-8 z-30 lg:hidden" style={{ boxShadow: '0 -10px 40px rgba(0,0,0,0.04)' }}>
+        <section className="relative -mt-4 min-h-[500px] w-full rounded-t-[2.5rem] bg-white px-6 pt-8 z-30 lg:hidden [html.dark_&]:bg-[#1a1a1a]" style={{ boxShadow: '0 -10px 40px rgba(0,0,0,0.04)' }}>
           <div className="absolute top-3 left-1/2 -translate-x-1/2 h-1.5 w-12 rounded-full bg-primary/20" />
           <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-hide">
             {tabs.map(tab => (
@@ -556,7 +555,7 @@ export default function ProviderProfilePage() {
         </div>
 
         {/* ── MOBILE sticky footer ── */}
-        <footer className="fixed bottom-0 left-0 w-full bg-white border-t border-gray-100 px-6 py-4 flex items-center gap-4 z-50 lg:hidden">
+        <footer className="fixed bottom-0 left-0 w-full bg-white border-t border-gray-100 px-6 py-4 flex items-center gap-4 z-50 lg:hidden [html.dark_&]:bg-[#1a1a1a] [html.dark_&]:border-[#2a2a2a]">
           <button
             onClick={() => router.push(`/book/${provider.id}`)}
             onTouchEnd={(e) => { e.preventDefault(); router.push(`/book/${provider.id}`); }}

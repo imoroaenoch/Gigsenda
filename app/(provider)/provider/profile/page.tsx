@@ -30,7 +30,10 @@ import {
   Trash2,
   ImagePlus,
   X,
+  Moon,
+  Sun,
 } from "lucide-react";
+import { useTheme } from "@/hooks/useTheme";
 import { useAuth } from "@/hooks/useAuth";
 import { getProvider, updateProvider, uploadProfilePhoto, getBookings, deleteAccount } from "@/lib/firestore";
 import { subscribeCategoriesWithSubs, CategoryWithSubs } from "@/lib/categories";
@@ -96,6 +99,7 @@ export default function ProviderProfileEditPage() {
   }, []);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const portfolioInputRef = useRef<HTMLInputElement>(null);
+  const { theme, toggleTheme } = useTheme();
 
   const [portfolioPhotos, setPortfolioPhotos] = useState<string[]>([]);
   const [isUploadingPortfolio, setIsUploadingPortfolio] = useState(false);
@@ -388,16 +392,16 @@ export default function ProviderProfileEditPage() {
 
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-[#FFFDF7]">
+      <div className="flex min-h-screen items-center justify-center bg-[#FFFDF7] [html.dark_&]:bg-[#111111]">
         <div className="h-6 w-6 animate-spin rounded-full border-b-2 border-t-2 border-primary"></div>
       </div>
     );
   }
 
   return (
-    <main className="min-h-screen bg-[#FFFDF7] pb-24 lg:pb-12">
+    <main className="min-h-screen bg-[#FFFDF7] pb-24 lg:pb-12 [html.dark_&]:bg-[#111111]">
       {/* Header */}
-      <header className="sticky top-0 z-50 bg-white px-6 lg:px-8 pt-5 pb-4 lg:pt-6 lg:pb-5 shadow-sm border-b border-gray-100">
+      <header className="sticky top-0 z-50 bg-white px-6 lg:px-8 pt-5 pb-4 lg:pt-6 lg:pb-5 shadow-sm border-b border-gray-100 [html.dark_&]:bg-[#1a1a1a] [html.dark_&]:border-[#2a2a2a]">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <button onClick={() => router.back()} className="rounded-xl p-2 hover:bg-gray-100">
@@ -999,6 +1003,28 @@ export default function ProviderProfileEditPage() {
                 </div>
               </div>
             )}
+          </section>
+
+          {/* Theme */}
+          <section className="rounded-2xl bg-white border border-gray-100 p-5 shadow-sm">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gray-100">
+                  {theme === "dark" ? <Moon className="h-5 w-5 text-primary" /> : <Sun className="h-5 w-5 text-primary" />}
+                </div>
+                <div>
+                  <h3 className="font-black text-text text-[13px]">Theme</h3>
+                  <p className="text-[11px] font-medium text-text-light">{theme === "dark" ? "Dark mode" : "Light mode"}</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={toggleTheme}
+                className={`relative h-7 min-w-[52px] rounded-full transition-colors ${theme === "dark" ? "bg-primary" : "bg-gray-200"}`}
+              >
+                <div className={`absolute top-1 h-5 w-5 rounded-full bg-white shadow transition-all ${theme === "dark" ? "left-[28px]" : "left-1"}`} />
+              </button>
+            </div>
           </section>
 
           <button 

@@ -4,7 +4,8 @@ export const dynamic = 'force-dynamic';
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Settings, Upload, Eye, EyeOff, TestTube, Mail, Save, Trash2, Plus, Edit2, Check, X, AlertTriangle, Shield, LogOut, Smartphone, Calendar } from "lucide-react";
+import { ArrowLeft, Settings, Upload, Eye, EyeOff, TestTube, Mail, Save, Trash2, Plus, Edit2, Check, X, AlertTriangle, Shield, LogOut, Smartphone, Calendar, Moon, Sun } from "lucide-react";
+import { useTheme } from "@/hooks/useTheme";
 import { useAuth } from "@/hooks/useAuth";
 import AuthGuard from "@/components/auth/AuthGuard";
 import SettingsTabs, { TABS } from "@/components/admin/SettingsTabs";
@@ -33,6 +34,7 @@ export default function AdminSettingsPage() {
   const [activeTab, setActiveTab] = useState("general");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const { theme, toggleTheme } = useTheme();
 
   // Settings state
   const [generalSettings, setGeneralSettings] = useState<GeneralSettings>({
@@ -1283,6 +1285,62 @@ export default function AdminSettingsPage() {
                   <button className="flex items-center gap-2 px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600">
                     <LogOut className="h-4 w-4" />
                     Logout from All Devices
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Theme Tab */}
+            {activeTab === "theme" && (
+              <div className="bg-white rounded-xl border border-gray-200 p-6">
+                <h2 className="text-lg font-semibold text-gray-900 mb-2">Theme</h2>
+                <p className="text-sm text-gray-500 mb-8">Choose how the admin area looks for you.</p>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-md">
+                  {/* Light */}
+                  <button
+                    onClick={() => theme !== "light" && toggleTheme()}
+                    className={`flex flex-col items-center gap-3 rounded-xl border-2 p-6 transition-all ${
+                      theme === "light"
+                        ? "border-orange-500 bg-orange-50"
+                        : "border-gray-200 hover:border-gray-300 bg-gray-50"
+                    }`}
+                  >
+                    <div className={`h-12 w-12 rounded-full flex items-center justify-center ${
+                      theme === "light" ? "bg-orange-100" : "bg-white border border-gray-200"
+                    }`}>
+                      <Sun className={`h-6 w-6 ${theme === "light" ? "text-orange-500" : "text-gray-400"}`} />
+                    </div>
+                    <div className="text-center">
+                      <p className={`font-semibold text-sm ${theme === "light" ? "text-orange-600" : "text-gray-700"}`}>Light</p>
+                      <p className="text-xs text-gray-400 mt-0.5">Bright & clean</p>
+                    </div>
+                    {theme === "light" && (
+                      <span className="text-[10px] font-black uppercase tracking-wider text-orange-500 bg-orange-100 px-2 py-0.5 rounded-full">Active</span>
+                    )}
+                  </button>
+
+                  {/* Dark */}
+                  <button
+                    onClick={() => theme !== "dark" && toggleTheme()}
+                    className={`flex flex-col items-center gap-3 rounded-xl border-2 p-6 transition-all ${
+                      theme === "dark"
+                        ? "border-orange-500 bg-orange-50"
+                        : "border-gray-200 hover:border-gray-300 bg-gray-50"
+                    }`}
+                  >
+                    <div className={`h-12 w-12 rounded-full flex items-center justify-center ${
+                      theme === "dark" ? "bg-orange-100" : "bg-gray-800"
+                    }`}>
+                      <Moon className={`h-6 w-6 ${theme === "dark" ? "text-orange-500" : "text-gray-200"}`} />
+                    </div>
+                    <div className="text-center">
+                      <p className={`font-semibold text-sm ${theme === "dark" ? "text-orange-600" : "text-gray-700"}`}>Dark</p>
+                      <p className="text-xs text-gray-400 mt-0.5">Easy on the eyes</p>
+                    </div>
+                    {theme === "dark" && (
+                      <span className="text-[10px] font-black uppercase tracking-wider text-orange-500 bg-orange-100 px-2 py-0.5 rounded-full">Active</span>
+                    )}
                   </button>
                 </div>
               </div>

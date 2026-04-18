@@ -79,8 +79,8 @@ export default function NotificationBell({ dropdownSide = "left" }: Notification
 
       {/* Dropdown */}
       {open && (
-        <div className={`absolute top-12 z-[9999] w-[340px] rounded-2xl bg-white shadow-2xl border border-gray-100 overflow-hidden ${
-          dropdownSide === "right" ? "left-0" : "right-0"
+        <div className={`fixed inset-x-3 top-20 z-[9999] rounded-2xl bg-white shadow-2xl border border-gray-100 overflow-hidden sm:absolute sm:inset-x-auto sm:top-12 sm:w-[340px] ${
+          dropdownSide === "right" ? "sm:left-0" : "sm:right-0"
         }`}>
           {/* Header */}
           <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">

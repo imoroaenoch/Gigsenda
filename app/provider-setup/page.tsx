@@ -248,9 +248,9 @@ export default function ProviderSetupPage() {
   };
 
   return (
-    <main className="min-h-screen bg-[#FFFDF7] pb-24">
+    <main className="min-h-screen bg-[#FFFDF7] pb-24 [html.dark_&]:bg-[#111111]">
       {/* Step Progress Header */}
-      <header className="sticky top-0 z-50 bg-white px-6 pt-12 pb-6 shadow-sm">
+      <header className="sticky top-0 z-50 bg-white px-6 pt-12 pb-6 shadow-sm [html.dark_&]:bg-[#1a1a1a] [html.dark_&]:border-b [html.dark_&]:border-[#2a2a2a]">
         <div className="flex items-center justify-between mb-6">
           <button onClick={() => router.back()} className="rounded-xl p-2 hover:bg-gray-100">
             <ArrowLeft className="h-6 w-6 text-text" />

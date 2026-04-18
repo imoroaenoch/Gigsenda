@@ -516,7 +516,7 @@ export default function BookingPage() {
         </div>
 
         {/* ── MOBILE LAYOUT ── */}
-        <div className="lg:hidden relative -mt-6 rounded-t-[2.5rem] bg-white px-5 pt-7 pb-6 shadow-[0_-10px_40px_rgba(0,0,0,0.04)] z-20">
+        <div className="lg:hidden relative -mt-6 rounded-t-[2.5rem] bg-white px-5 pt-7 pb-6 shadow-[0_-10px_40px_rgba(0,0,0,0.04)] z-20 [html.dark_&]:bg-[#1a1a1a]">
           <div className="absolute top-3 left-1/2 -translate-x-1/2 h-1 w-10 rounded-full bg-gray-200" />
 
           {/* Provider info */}
@@ -587,7 +587,7 @@ export default function BookingPage() {
         </div>
 
         {/* Mobile sticky book button */}
-        <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-xl px-5 py-4 border-t border-gray-100 z-50">
+        <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-xl px-5 py-4 border-t border-gray-100 z-50 [html.dark_&]:bg-[#1a1a1a]/90 [html.dark_&]:border-[#2a2a2a]">
           {bookingButtonJSX("py-[18px]")}
         </div>
 
