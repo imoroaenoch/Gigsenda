@@ -221,9 +221,9 @@ export default function CustomerProfilePage() {
 
   return (
     <AuthGuard>
-      <main className="min-h-screen bg-white pb-24 lg:pb-8">
+      <main className="min-h-screen bg-white pb-24 lg:pb-8 [html.dark_&]:bg-[#111111]">
         {/* Header */}
-        <header className="sticky top-0 z-50 bg-white px-6 pt-5 pb-3 border-b border-gray-100 lg:pt-6 lg:px-8">
+        <header className="sticky top-0 z-50 bg-white px-6 pt-5 pb-3 border-b border-gray-100 lg:pt-6 lg:px-8 [html.dark_&]:bg-[#1a1a1a] [html.dark_&]:border-[#2a2a2a]">
           <div className="flex items-center gap-4">
             <button onClick={() => router.back()} className="rounded-full p-2 text-gray-500 hover:bg-gray-100 transition-all">
               <ArrowLeft className="h-6 w-6 text-text" />
@@ -235,7 +235,7 @@ export default function CustomerProfilePage() {
         {/* Desktop two-column */}
         <div className="lg:flex lg:gap-0">
           {/* Left col: photo + stats */}
-          <div className="lg:w-[300px] lg:flex-shrink-0 lg:border-r lg:border-gray-100 lg:bg-white">
+          <div className="lg:w-[300px] lg:flex-shrink-0 lg:border-r lg:border-gray-100 lg:bg-white [html.dark_&]:lg:bg-[#1a1a1a] [html.dark_&]:lg:border-[#2a2a2a]">
             <div className="flex flex-col items-center pt-10 pb-8 px-6">
               <div className="relative h-28 w-28">
                 <div className="relative h-full w-full overflow-hidden rounded-full border-4 border-primary/10 bg-gray-100">
@@ -539,7 +539,7 @@ export default function CustomerProfilePage() {
           </button>
 
           {/* Danger Zone */}
-          <div className="rounded-2xl border-2 border-red-100 bg-red-50/50 p-5">
+          <div className="rounded-2xl border-2 border-red-100 bg-red-50/50 p-5 [html.dark_&]:bg-red-950/30 [html.dark_&]:border-red-900/50">
             <div className="flex items-center gap-2 mb-3">
               <Trash2 className="h-4 w-4 text-red-500" />
               <h3 className="text-[13px] font-black uppercase tracking-widest text-red-500">Danger Zone</h3>
@@ -549,7 +549,7 @@ export default function CustomerProfilePage() {
             </p>
             <button
               onClick={() => setShowDeleteConfirm(true)}
-              className="flex w-full items-center justify-center gap-2 rounded-xl border-2 border-red-300 bg-white py-3.5 text-sm font-black text-red-500 hover:bg-red-50 transition-all active:scale-95"
+              className="flex w-full items-center justify-center gap-2 rounded-xl border-2 border-red-300 bg-white py-3.5 text-sm font-black text-red-500 hover:bg-red-50 transition-all active:scale-95 [html.dark_&]:bg-transparent [html.dark_&]:hover:bg-red-950/40"
             >
               <Trash2 className="h-4 w-4" />
               Delete My Account
@@ -562,7 +562,7 @@ export default function CustomerProfilePage() {
         {showDeleteConfirm && (
           <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center">
             <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => !isDeletingAccount && setShowDeleteConfirm(false)} />
-            <div className="relative w-full sm:max-w-sm mx-4 sm:mx-auto bg-white rounded-t-3xl sm:rounded-3xl p-6 shadow-2xl">
+            <div className="relative w-full sm:max-w-sm mx-4 sm:mx-auto bg-white rounded-t-3xl sm:rounded-3xl p-6 shadow-2xl [html.dark_&]:bg-[#1c1c1c]">
               <div className="flex h-14 w-14 items-center justify-center rounded-full bg-red-50 mx-auto mb-4">
                 <Trash2 className="h-7 w-7 text-red-500" />
               </div>
@@ -591,7 +591,7 @@ export default function CustomerProfilePage() {
         )}
 
         {/* Premium Floating Bottom Navigation - Compact */}
-        <nav className="lg:hidden fixed bottom-0 left-0 right-0 flex items-center justify-around bg-white px-4 py-3.5 border-t border-gray-100 shadow-[0_-4px_20px_rgba(0,0,0,0.06)] z-50">
+        <nav className="lg:hidden fixed bottom-0 left-0 right-0 flex items-center justify-around bg-white px-4 py-3.5 border-t border-gray-100 shadow-[0_-4px_20px_rgba(0,0,0,0.06)] z-50 [html.dark_&]:bg-[#1a1a1a] [html.dark_&]:border-[#2a2a2a]">
           <button className="flex flex-col items-center gap-1 text-text-light" onClick={() => router.push("/bookings")}>
             <div className="p-1"><Calendar className="h-5 w-5" /></div>
             <span className="text-[9px] font-medium uppercase tracking-tight">Booking</span>
