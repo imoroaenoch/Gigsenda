@@ -386,6 +386,8 @@ export const createBooking = async (data: any) => {
       console.warn("Could not create conversation for booking:", e);
     }
 
+    const expiresAt = new Date(Date.now() + 72 * 60 * 60 * 1000); // 72h from now
+
     await setDoc(docRef, {
       ...data,
       id: bookingId,
@@ -393,9 +395,11 @@ export const createBooking = async (data: any) => {
       commission,
       providerEarning,
       price: totalAmount,           // keep legacy field in sync
-      status: data.status || "upcoming",
+      status: data.status || "pending",
+      paymentStatus: data.paymentStatus || "not_initiated",
       isReviewed: false,
       conversationId,
+      expiresAt,
       createdAt: serverTimestamp(),
       updatedAt: serverTimestamp(),
     });

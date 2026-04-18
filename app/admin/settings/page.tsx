@@ -546,6 +546,28 @@ export default function AdminSettingsPage() {
                     </div>
                   </div>
 
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                    <p className="text-sm font-semibold text-blue-900 mb-1">Paystack Webhook URL</p>
+                    <p className="text-xs text-blue-700 mb-2">
+                      Copy this URL into your Paystack Dashboard → Settings → Webhooks. Set event to <strong>charge.success</strong>.
+                    </p>
+                    <div className="flex items-center gap-2">
+                      <code className="flex-1 text-xs bg-white border border-blue-200 rounded px-3 py-2 text-blue-900 font-mono break-all select-all">
+                        {(process.env.NEXT_PUBLIC_APP_URL || "https://gigsenda.vercel.app") + "/api/paystack/webhook"}
+                      </code>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          navigator.clipboard.writeText((process.env.NEXT_PUBLIC_APP_URL || "https://gigsenda.vercel.app") + "/api/paystack/webhook");
+                          toast.success("Webhook URL copied!");
+                        }}
+                        className="flex-shrink-0 px-3 py-2 bg-blue-600 text-white text-xs font-semibold rounded-lg hover:bg-blue-700 transition-colors"
+                      >
+                        Copy
+                      </button>
+                    </div>
+                  </div>
+
                   <div className="flex gap-3">
                     <button
                       onClick={handleSavePayment}

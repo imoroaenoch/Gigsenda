@@ -1,21 +1,33 @@
 "use client";
 
 interface StatusTimelineProps {
-  currentStatus: "pending" | "pending_payment" | "confirmed" | "paid" | "in_progress" | "completed" | "disputed" | "refunded" | "cancelled";
+  currentStatus: string;
+  viewerType?: "customer" | "provider";
 }
 
-const StatusTimeline = ({ currentStatus }: StatusTimelineProps) => {
+const StatusTimeline = ({ currentStatus, viewerType = "customer" }: StatusTimelineProps) => {
   const steps = [
-    { id: "pending", label: "Booking Requested", icon: "📋" },
-    { id: "confirmed", label: "Booking Confirmed", icon: "✅" },
-    { id: "paid", label: "Payment Made", icon: "💳" },
-    { id: "in_progress", label: "Service In Progress", icon: "🔧" },
-    { id: "completed", label: "Completed", icon: "⭐" },
+    { id: "pending",     label: "Requested",                                               icon: "📋" },
+    { id: "accepted",    label: viewerType === "provider" ? "Awaiting Payment" : "Awaiting Payment", icon: "🟡" },
+    { id: "paid",        label: viewerType === "provider" ? "Payment Received" : "Payment Confirmed", icon: "�" },
+    { id: "in_progress", label: "In Progress",                                              icon: "�" },
+    { id: "completed",   label: "Completed",                                                icon: "✅" },
   ];
 
   const getCurrentStepIndex = () => {
-    const statusOrder = ["pending", "confirmed", "paid", "in_progress", "completed"];
-    return statusOrder.indexOf(currentStatus);
+    const statusOrder = ["pending", "accepted", "paid", "in_progress", "completed"];
+    // Map legacy/alternate statuses onto the order
+    const mapped: Record<string, string> = {
+      confirmed:       "paid",        // legacy: confirmed = payment done
+      upcoming:        "paid",        // legacy: upcoming = payment done
+      pending_payment: "accepted",    // legacy: pending_payment = accepted, awaiting payment
+      rejected:        "pending",
+      cancelled:       "pending",
+      disputed:        "in_progress",
+      refunded:        "completed",
+    };
+    const s = mapped[currentStatus] ?? currentStatus;
+    return statusOrder.indexOf(s);
   };
 
   const currentStepIndex = getCurrentStepIndex();

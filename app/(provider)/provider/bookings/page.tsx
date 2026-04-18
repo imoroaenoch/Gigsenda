@@ -14,23 +14,19 @@ import ProviderBottomNav from "@/components/provider/ProviderBottomNav";
 import { db } from "@/lib/firebase";
 import { collection, query, where, onSnapshot, getDoc, doc } from "firebase/firestore";
 import { format } from "date-fns";
+import { getProviderStatusLabel, getStatusColor, getStatusIcon } from "@/lib/booking-status";
 
-type TabId = "all" | "pending" | "upcoming" | "completed" | "cancelled";
+type TabId = "all" | "pending" | "active" | "completed" | "cancelled";
+
+const ACTIVE_PROVIDER_STATUSES = ["accepted", "paid", "in_progress", "upcoming"];
 
 const TABS: { id: TabId; label: string }[] = [
   { id: "all",       label: "All" },
-  { id: "pending",   label: "Pending" },
-  { id: "upcoming",  label: "Confirmed" },
+  { id: "pending",   label: "New Requests" },
+  { id: "active",    label: "Active" },
   { id: "completed", label: "Completed" },
   { id: "cancelled", label: "Cancelled" },
 ];
-
-const STATUS_BADGE: Record<string, { label: string; className: string }> = {
-  pending:   { label: "Pending",   className: "bg-yellow-50 text-yellow-600" },
-  upcoming:  { label: "Confirmed", className: "bg-blue-50 text-blue-500" },
-  completed: { label: "Completed", className: "bg-green-50 text-green-600" },
-  cancelled: { label: "Cancelled", className: "bg-red-50 text-red-400" },
-};
 
 function ProviderBookingsPage() {
   const router       = useRouter();
@@ -58,11 +54,11 @@ function ProviderBookingsPage() {
       setLoading(false);
 
       // Fetch photos for customers missing a photo
-      const missingIds = [...new Set(
+      const missingIds = Array.from(new Set(
         data
           .filter((b: any) => !b.customerPhoto && b.customerId)
           .map((b: any) => b.customerId as string)
-      )];
+      ));
       if (missingIds.length === 0) return;
       const entries = await Promise.all(
         missingIds.map(async (uid) => {
@@ -75,13 +71,19 @@ function ProviderBookingsPage() {
       );
       setCustomerPhotos(prev => ({
         ...prev,
-        ...Object.fromEntries(entries.filter(([, v]) => v)),
+        ...Object.fromEntries(
+          entries.filter((e): e is [string, string] => typeof e[1] === "string")
+        ),
       }));
     });
     return () => unsub();
   }, [user?.uid]);
 
-  const filtered = activeTab === "all" ? bookings : bookings.filter((b: any) => b.status === activeTab);
+  const filtered = activeTab === "all"
+    ? bookings
+    : activeTab === "active"
+    ? bookings.filter((b: any) => ACTIVE_PROVIDER_STATUSES.includes(b.status))
+    : bookings.filter((b: any) => b.status === activeTab);
 
   const fmtDate = (ts: any) => {
     if (!ts) return "—";
@@ -103,9 +105,9 @@ function ProviderBookingsPage() {
               </p>
             </div>
             <div className="hidden lg:flex items-center gap-2">
-              {Object.entries(STATUS_BADGE).map(([key, val]) => (
-                <span key={key} className={`text-[11px] font-black px-3 py-1 rounded-full ${val.className}`}>
-                  {bookings.filter((b: any) => b.status === key).length} {val.label}
+              {(["pending", "accepted", "paid", "in_progress", "completed"] as string[]).map(key => (
+                <span key={key} className={`text-[11px] font-black px-3 py-1 rounded-full ${getStatusColor(key)}`}>
+                  {bookings.filter((b: any) => b.status === key).length} {getProviderStatusLabel(key)}
                 </span>
               ))}
             </div>
@@ -115,24 +117,27 @@ function ProviderBookingsPage() {
         {/* Filter tabs */}
         <div className="px-5 lg:px-8 pt-4">
           <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide lg:overflow-visible">
-            {TABS.map(tab => (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className={`flex-shrink-0 rounded-full px-4 lg:px-5 py-2 text-[11px] lg:text-[12px] font-black transition-all ${
-                  activeTab === tab.id
-                    ? "bg-primary text-white shadow-md shadow-primary/20"
-                    : "bg-white text-text-light border border-gray-100 hover:border-gray-300"
-                }`}
-              >
-                {tab.label}
-                {tab.id !== "all" && (
-                  <span className={`ml-1.5 ${activeTab === tab.id ? "opacity-70" : "opacity-50"}`}>
-                    ({bookings.filter((b: any) => b.status === tab.id).length})
-                  </span>
-                )}
-              </button>
-            ))}
+            {TABS.map(tab => {
+              const count = tab.id === "all"
+                ? bookings.length
+                : tab.id === "active"
+                ? bookings.filter((b: any) => ACTIVE_PROVIDER_STATUSES.includes(b.status)).length
+                : bookings.filter((b: any) => b.status === tab.id).length;
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`flex-shrink-0 rounded-full px-4 lg:px-5 py-2 text-[11px] lg:text-[12px] font-black transition-all ${
+                    activeTab === tab.id
+                      ? "bg-primary text-white shadow-md shadow-primary/20"
+                      : "bg-white text-text-light border border-gray-100 hover:border-gray-300"
+                  }`}
+                >
+                  {tab.label}
+                  <span className={`ml-1.5 ${activeTab === tab.id ? "opacity-70" : "opacity-50"}`}>({count})</span>
+                </button>
+              );
+            })}
           </div>
         </div>
 
@@ -153,13 +158,17 @@ function ProviderBookingsPage() {
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {filtered.map((b: any) => {
-                const badge = STATUS_BADGE[b.status] || STATUS_BADGE.pending;
                 const photo = b.customerPhoto || customerPhotos[b.customerId];
                 const initials = (b.customerName || "?").charAt(0).toUpperCase();
+                const isPaid = b.status === "paid";
                 return (
-                  <div key={b.id} className="rounded-2xl bg-white border border-gray-100 shadow-sm p-4 lg:p-5 hover:shadow-md transition-shadow flex flex-col">
+                  <div
+                    key={b.id}
+                    className={`rounded-2xl bg-white border shadow-sm p-4 lg:p-5 hover:shadow-md transition-shadow flex flex-col ${
+                      isPaid ? "border-green-200 ring-2 ring-green-100" : "border-gray-100"
+                    }`}
+                  >
                     <div className="flex items-start gap-3">
-                      {/* Avatar */}
                       <div className="relative h-11 w-11 rounded-full overflow-hidden bg-primary/10 flex-shrink-0 border border-gray-100">
                         {photo
                           ? <Image src={photo} alt={b.customerName || ""} fill className="object-cover" />
@@ -172,8 +181,10 @@ function ProviderBookingsPage() {
                             <p className="text-[13px] lg:text-[14px] font-black text-text">{b.customerName || "Customer"}</p>
                             <p className="text-[11px] font-bold text-text-light truncate">{b.servicePackage || b.serviceTitle || b.category}</p>
                           </div>
-                          <span className={`flex-shrink-0 rounded-full px-2.5 py-0.5 text-[10px] font-black ${badge.className}`}>
-                            {badge.label}
+                          <span className={`flex-shrink-0 rounded-full px-2.5 py-0.5 text-[10px] font-black ${getStatusColor(b.status)} ${
+                            isPaid ? "animate-pulse" : ""
+                          }`}>
+                            {getStatusIcon(b.status)} {getProviderStatusLabel(b.status)}
                           </span>
                         </div>
                         <div className="flex items-center gap-1 mt-1.5">

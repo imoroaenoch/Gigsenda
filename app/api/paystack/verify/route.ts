@@ -110,6 +110,7 @@ export async function POST(request: NextRequest) {
     try {
       await adminDb.doc(`bookings/${metadata.bookingId}`).update({
         status: "paid",
+        paymentStatus: "success",
         paymentReference: paymentData.reference,
         paidAt: FieldValue.serverTimestamp(),
         updatedAt: FieldValue.serverTimestamp(),

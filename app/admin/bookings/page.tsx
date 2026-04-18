@@ -15,10 +15,30 @@ import toast from "react-hot-toast";
 import { format } from "date-fns";
 
 const STATUS_STYLES: Record<string, string> = {
-  completed: "bg-green-50 text-green-600 border border-green-100",
-  cancelled:  "bg-red-50 text-red-600 border border-red-100",
-  upcoming:   "bg-blue-50 text-blue-600 border border-blue-100",
-  pending:    "bg-yellow-50 text-yellow-600 border border-yellow-100",
+  pending:     "bg-yellow-50 text-yellow-700 border border-yellow-100",
+  accepted:    "bg-blue-50 text-blue-700 border border-blue-100",
+  paid:        "bg-green-50 text-green-700 border border-green-100",
+  in_progress: "bg-orange-50 text-orange-700 border border-orange-100",
+  completed:   "bg-green-500 text-white",
+  cancelled:   "bg-gray-100 text-gray-600 border border-gray-200",
+  rejected:    "bg-red-50 text-red-600 border border-red-100",
+  disputed:    "bg-purple-50 text-purple-700 border border-purple-100",
+  // legacy aliases
+  upcoming:    "bg-green-50 text-green-700 border border-green-100",
+  confirmed:   "bg-green-50 text-green-700 border border-green-100",
+};
+
+const STATUS_LABELS: Record<string, string> = {
+  pending:     "⏳ Pending",
+  accepted:    "🟡 Awaiting Payment",
+  paid:        "🟢 Payment Confirmed",
+  in_progress: "🔵 In Progress",
+  completed:   "✅ Completed",
+  cancelled:   "⚫ Cancelled",
+  rejected:    "❌ Declined",
+  disputed:    "⚠️ Under Review",
+  upcoming:    "🟢 Payment Confirmed",
+  confirmed:   "🟢 Payment Confirmed",
 };
 
 export default function AdminBookings() {
@@ -188,11 +208,8 @@ export default function AdminBookings() {
                   </td>
                   {/* Status */}
                   <td className="px-8 py-6">
-                    <span className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-[9px] font-medium uppercase tracking-tight ${STATUS_STYLES[booking.status] || STATUS_STYLES.upcoming}`}>
-                      {booking.status === "completed" ? <CheckCircle2 className="h-3.5 w-3.5" /> :
-                       booking.status === "cancelled"  ? <XCircle className="h-3.5 w-3.5" /> :
-                       <Clock className="h-3.5 w-3.5" />}
-                      {booking.status}
+                    <span className={`inline-flex items-center px-3 py-1.5 rounded-full text-[9px] font-black ${STATUS_STYLES[booking.status] || STATUS_STYLES.pending}`}>
+                      {STATUS_LABELS[booking.status] || booking.status}
                     </span>
                   </td>
                   {/* Actions */}
@@ -277,11 +294,8 @@ export default function AdminBookings() {
             <div className="px-8 py-6 space-y-5">
               {/* Status badge */}
               <div className="flex items-center justify-between">
-                <span className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-[10px] font-medium uppercase tracking-tight ${STATUS_STYLES[detailBooking.status] || STATUS_STYLES.upcoming}`}>
-                  {detailBooking.status === "completed" ? <CheckCircle2 className="h-3.5 w-3.5" /> :
-                   detailBooking.status === "cancelled"  ? <XCircle className="h-3.5 w-3.5" /> :
-                   <Clock className="h-3.5 w-3.5" />}
-                  {detailBooking.status}
+                <span className={`inline-flex items-center px-3 py-1.5 rounded-full text-[10px] font-black ${STATUS_STYLES[detailBooking.status] || STATUS_STYLES.pending}`}>
+                  {STATUS_LABELS[detailBooking.status] || detailBooking.status}
                 </span>
                 <span className="text-[11px] font-medium text-text-light">ID: {detailBooking.id?.slice(0, 8)}…</span>
               </div>

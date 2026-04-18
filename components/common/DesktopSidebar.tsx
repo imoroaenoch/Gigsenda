@@ -79,21 +79,35 @@ export default function DesktopSidebar() {
 
       {/* User card */}
       {profile && (
-        <div className="flex items-center gap-3 rounded-2xl bg-primary/5 p-3 mb-6 border border-primary/10">
-          <div className="relative h-10 w-10 shrink-0 rounded-xl overflow-hidden bg-gray-100">
-            {(profile.photoURL || providerPhoto) ? (
-              <Image src={profile.photoURL || providerPhoto!} alt={profile.name || ""} fill className="object-cover" />
-            ) : (
-              <div className="flex h-full w-full items-center justify-center text-gray-400">
-                <User className="h-5 w-5" />
-              </div>
-            )}
+        <div className="rounded-2xl bg-primary/5 p-3 mb-3 border border-primary/10">
+          <div className="flex items-center gap-3">
+            <div className="relative h-10 w-10 shrink-0 rounded-xl overflow-hidden bg-gray-100">
+              {(profile.photoURL || providerPhoto) ? (
+                <Image src={profile.photoURL || providerPhoto!} alt={profile.name || ""} fill className="object-cover" />
+              ) : (
+                <div className="flex h-full w-full items-center justify-center text-gray-400">
+                  <User className="h-5 w-5" />
+                </div>
+              )}
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="text-[12px] font-black text-text truncate">{profile.name || "User"}</p>
+              <p className="text-[10px] font-bold text-text-light capitalize">{profile.accountType || "customer"}</p>
+            </div>
           </div>
-          <div className="min-w-0">
-            <p className="text-[12px] font-black text-text truncate">{profile.name || "User"}</p>
-            <p className="text-[10px] font-bold text-text-light capitalize">{profile.accountType || "customer"}</p>
+
+          {/* Notifications row — full width, clearly visible */}
+          <button
+            onClick={() => {
+              const bell = document.querySelector<HTMLButtonElement>("[data-notif-trigger]");
+              bell?.click();
+            }}
+            className="sr-only"
+          />
+          <div className="mt-3 pt-3 border-t border-primary/10 flex items-center justify-between">
+            <span className="text-[10px] font-bold text-text-light uppercase tracking-widest">Notifications</span>
+            <NotificationBell />
           </div>
-          <NotificationBell />
         </div>
       )}
 

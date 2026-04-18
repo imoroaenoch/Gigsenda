@@ -107,6 +107,16 @@ Gigsenda is a local services marketplace for Nigeria. It connects customers with
 - [x] Escrow System — Full escrow hold/release/refund flow: funds held after payment, released via Paystack Transfer API when customer confirms completion, 72h auto-release safety net, dispute system with admin resolution page, pending payouts card on provider dashboard
 - [x] Desktop Responsive Design — Fixed sidebar (260px) with navigation and user profile, home page 3-col provider grid and taller hero, search page with permanent filters sidebar + 3-col results grid, bookings two-column list+preview panel, chat two-column WhatsApp-style layout, profile two-column photo/stats+forms layout, 1200px max-width on all pages
 
+- [x] Provider-First Booking Flow — Provider must accept before customer can pay; status flow: pending → accepted → paid → in_progress → completed
+- [x] Centralized Status Labels — lib/booking-status.ts with customer/provider label maps, StatusBadge and StatusTimeline components
+- [x] Pay Now Button Fix — Persistent Pay Now button on accepted bookings, visible after refresh or returning later; paymentStatus "pending" no longer blocks checkout
+- [x] Complete Booking Management System:
+  - Customer detail page: progress tracker (4 steps), Pay Now, Mark as Complete, Leave Review (inline modal), Raise Dispute (with category + disputes Firestore collection), elapsed timer, disputed/cancelled states
+  - Provider detail page: Accept/Decline, Start Job, live elapsed timer on in_progress, Mark as Completed (sends customer notification), Report Issue (modal + disputes collection), settlement card with earnings breakdown on completed, View Earnings button
+  - Dispute modal: category dropdown (5 options), description (min 20 chars), writes to disputes collection, notifies admin + both parties
+  - Review modal: inline star rating + comment, uses existing ReviewModal component + addReview from lib/reviews
+  - Customer bookings list: Awaiting tab (pending + accepted), Active tab (paid + in_progress only), Pay Now button on card
+
 ### In Progress
 - [x] Payment integration (Paystack) — COMPLETED
 

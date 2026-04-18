@@ -49,7 +49,7 @@ function PaymentVerifyContent() {
 
       return () => clearTimeout(timer);
     } else if (verificationResult?.success && countdown === 0) {
-      router.push(`/booking-success/${verificationResult.data?.bookingId}`);
+      router.push(`/bookings/${verificationResult.data?.bookingId}`);
     }
   }, [countdown, verificationResult, router]);
 
@@ -158,7 +158,7 @@ function PaymentVerifyContent() {
 
           {/* Manual Redirect Button */}
           <button
-            onClick={() => router.push(`/booking-success/${verificationResult.data?.bookingId}`)}
+            onClick={() => router.push(`/bookings/${verificationResult.data?.bookingId}`)}
             className="mt-4 px-6 py-2 bg-orange-500 text-white font-medium rounded-lg hover:bg-orange-600 transition-colors"
           >
             View Booking

@@ -20,6 +20,7 @@ import {
 } from "firebase/firestore";
 import { createConversation } from "@/lib/chat";
 import { notifyBookingAccepted, notifyBookingDeclined } from "@/lib/notifications";
+import { getProviderStatusLabel, getStatusColor, getStatusIcon } from "@/lib/booking-status";
 import { getSettingSection } from "@/lib/admin-settings";
 import { formatDistanceToNow, format } from "date-fns";
 import toast from "react-hot-toast";
@@ -97,9 +98,11 @@ export default function ProviderDashboardPage() {
   }, [user?.uid]);
 
   // ── Derived stats ──────────────────────────────────────────────────────
-  const pending   = bookings.filter((b: any) => b.status === "pending");
-  const upcoming  = bookings.filter((b: any) => b.status === "upcoming");
-  const completed = bookings.filter((b: any) => b.status === "completed");
+  const pending     = bookings.filter((b: any) => b.status === "pending");
+  const readyToStart = bookings.filter((b: any) => b.status === "paid");
+  const inProgress  = bookings.filter((b: any) => b.status === "in_progress");
+  const active      = bookings.filter((b: any) => ["accepted", "paid", "in_progress", "upcoming"].includes(b.status));
+  const completed   = bookings.filter((b: any) => b.status === "completed");
 
   const totalEarnings = completed.reduce((sum: number, b: any) => sum + ((b.price || 0) * (1 - commissionRate)), 0);
 
@@ -124,9 +127,9 @@ export default function ProviderDashboardPage() {
   const handleAccept = async (b: any) => {
     setActionId(b.id);
     try {
-      await updateDoc(doc(db, "bookings", b.id), { status: "upcoming", updatedAt: serverTimestamp() });
+      await updateDoc(doc(db, "bookings", b.id), { status: "accepted", updatedAt: serverTimestamp() });
       notifyBookingAccepted(b.customerId, profile?.name || "Your provider", b.id);
-      toast.success("Booking accepted!");
+      toast.success("Booking accepted! Waiting for customer payment.");
     } catch {
       toast.error("Failed to accept booking");
     } finally {
@@ -159,7 +162,7 @@ export default function ProviderDashboardPage() {
   const handleDecline = async (b: any) => {
     setActionId(b.id);
     try {
-      await updateDoc(doc(db, "bookings", b.id), { status: "cancelled", updatedAt: serverTimestamp() });
+      await updateDoc(doc(db, "bookings", b.id), { status: "rejected", updatedAt: serverTimestamp() });
       notifyBookingDeclined(b.customerId, profile?.name || "Your provider", b.id);
       toast.success("Booking declined");
     } catch {
@@ -251,7 +254,7 @@ export default function ProviderDashboardPage() {
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 lg:gap-4">
             {[
               { label: "Total Bookings", value: bookings.length,                              icon: ClipboardList, bg: "bg-blue-50",       color: "text-blue-500",   onClick: () => router.push("/provider/bookings") },
-              { label: "Pending",        value: pending.length,                               icon: Clock,         bg: "bg-yellow-50",     color: "text-yellow-500", onClick: () => router.push("/provider/bookings?tab=pending") },
+              { label: "New Requests",   value: pending.length,                               icon: Clock,         bg: "bg-yellow-50",     color: "text-yellow-500", onClick: () => router.push("/provider/bookings?tab=pending") },
               { label: "Earnings",       value: `₦${Math.round(totalEarnings).toLocaleString()}`, icon: Wallet,    bg: "bg-green-50",      color: "text-green-600",  onClick: () => router.push("/provider/earnings") },
               { label: "Avg Rating",     value: avgRating,                                    icon: Star,          bg: "bg-[#FFF4E5]",     color: "text-primary",    onClick: undefined },
               { label: "Availability",   value: `${availableDays}/7 days`,                    icon: Calendar,      bg: "bg-orange-50",     color: "text-orange-500", onClick: () => router.push("/provider/availability") },
@@ -338,10 +341,43 @@ export default function ProviderDashboardPage() {
             )}
           </section>
 
-          {/* ── Upcoming Bookings ─────────────────────────────────── */}
+          {/* ── Ready to Start (paid) — most urgent ────────────────── */}
+          {readyToStart.length > 0 && (
+            <section>
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-[14px] lg:text-[16px] font-black text-text flex items-center gap-2">
+                  <span className="h-2 w-2 rounded-full bg-green-500 animate-pulse" />
+                  Ready to Start
+                </h2>
+                <span className="text-[11px] font-bold bg-green-50 text-green-600 px-2.5 py-1 rounded-full">{readyToStart.length} paid</span>
+              </div>
+              <div className="space-y-3">
+                {readyToStart.map((b: any) => (
+                  <div key={b.id}
+                    className="rounded-2xl bg-white border-2 border-green-200 shadow-sm p-4 lg:p-5 hover:shadow-md transition-shadow cursor-pointer"
+                    onClick={() => router.push(`/provider/bookings/${b.id}`)}
+                  >
+                    <div className="flex items-center gap-3">
+                      <Avatar photo={b.customerPhoto} name={b.customerName} />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-[13px] lg:text-[14px] font-black text-text">{b.customerName || "Customer"}</p>
+                        <p className="text-[11px] font-bold text-text-light">{b.servicePackage || b.serviceTitle || b.category} · {fmtDate(b.date)}</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-[14px] font-black text-green-600">₦{(b.price || 0).toLocaleString()}</p>
+                        <span className="text-[9px] font-black text-green-600 bg-green-50 px-2 py-0.5 rounded-full animate-pulse">✅ Ready to Start</span>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </section>
+          )}
+
+          {/* ── Active Bookings (accepted / in_progress) ──────────── */}
           <section>
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-[14px] lg:text-[16px] font-black text-text">Upcoming Bookings</h2>
+              <h2 className="text-[14px] lg:text-[16px] font-black text-text">Active Bookings</h2>
               <button onClick={() => router.push("/provider/bookings")}
                 className="flex items-center gap-1 text-[11px] font-black text-primary hover:underline">
                 See all <ChevronRight className="h-3.5 w-3.5" />
@@ -349,23 +385,27 @@ export default function ProviderDashboardPage() {
             </div>
             {loading ? (
               <div className="space-y-3">{[1, 2].map(i => <div key={i} className="h-20 rounded-2xl bg-white border border-gray-100 animate-pulse" />)}</div>
-            ) : upcoming.length === 0 ? (
+            ) : active.filter((b: any) => b.status !== "paid").length === 0 ? (
               <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-gray-200 bg-white py-12 text-center">
                 <CheckCircle2 className="h-9 w-9 text-gray-300 mb-3" />
-                <p className="text-[13px] font-black text-text-light">No upcoming bookings</p>
+                <p className="text-[13px] font-black text-text-light">No active bookings</p>
               </div>
             ) : (
               <div className="space-y-3">
-                {upcoming.slice(0, 5).map((b: any) => (
-                  <div key={b.id} className="flex items-center gap-3 rounded-2xl bg-white border border-gray-100 shadow-sm p-4 lg:p-5 hover:shadow-md transition-shadow">
+                {active.filter((b: any) => b.status !== "paid").slice(0, 5).map((b: any) => (
+                  <div key={b.id} className="flex items-center gap-3 rounded-2xl bg-white border border-gray-100 shadow-sm p-4 lg:p-5 hover:shadow-md transition-shadow cursor-pointer"
+                    onClick={() => router.push(`/provider/bookings/${b.id}`)}
+                  >
                     <Avatar photo={b.customerPhoto} name={b.customerName} />
                     <div className="flex-1 min-w-0">
                       <p className="text-[13px] lg:text-[14px] font-black text-text">{b.customerName || "Customer"}</p>
                       <p className="text-[11px] font-bold text-text-light">{fmtDate(b.date)}</p>
                     </div>
                     <div className="flex flex-col items-end gap-2">
-                      <span className="rounded-full bg-blue-50 px-2.5 py-0.5 text-[10px] font-black text-blue-500">Confirmed</span>
-                      <button onClick={() => handleOpenChat(b)} disabled={chatLoading === b.id}
+                      <span className={`rounded-full px-2.5 py-0.5 text-[10px] font-black ${getStatusColor(b.status)}`}>
+                        {getStatusIcon(b.status)} {getProviderStatusLabel(b.status)}
+                      </span>
+                      <button onClick={(e) => { e.stopPropagation(); handleOpenChat(b); }} disabled={chatLoading === b.id}
                         className="flex items-center gap-1 rounded-lg bg-primary/10 px-2.5 py-1 text-[10px] font-black text-primary active:scale-95 transition-all disabled:opacity-60 hover:bg-primary/20">
                         {chatLoading === b.id
                           ? <div className="h-3 w-3 animate-spin rounded-full border-2 border-primary border-t-transparent" />

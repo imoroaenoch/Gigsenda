@@ -11,6 +11,7 @@ import { getConversations } from "@/lib/chat";
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import toast from "react-hot-toast";
+import NotificationBell from "@/components/common/NotificationBell";
 
 const NAV_ITEMS = [
   { id: "home",     label: "Home",     icon: Home,          path: "/home" },
@@ -48,12 +49,15 @@ export default function DesktopSidebar() {
 
   return (
     <aside className="hidden lg:flex flex-col fixed left-0 top-0 h-screen w-[260px] bg-white border-r border-gray-100 shadow-sm z-40">
-      {/* Logo */}
-      <div className="flex items-center gap-2.5 px-6 py-5 border-b border-gray-50">
-        <div className="h-9 w-9 rounded-xl bg-[#FF8C00] flex items-center justify-center shadow-md shadow-orange-200">
-          <Zap className="h-5 w-5 fill-white text-white" />
+      {/* Logo + Bell */}
+      <div className="flex items-center justify-between px-6 py-5 border-b border-gray-50">
+        <div className="flex items-center gap-2.5">
+          <div className="h-9 w-9 rounded-xl bg-[#FF8C00] flex items-center justify-center shadow-md shadow-orange-200">
+            <Zap className="h-5 w-5 fill-white text-white" />
+          </div>
+          <span className="text-[20px] font-black tracking-tight text-gray-900">Gigsenda</span>
         </div>
-        <span className="text-[20px] font-black tracking-tight text-gray-900">Gigsenda</span>
+        <NotificationBell dropdownSide="right" />
       </div>
 
       {/* Nav Links */}
@@ -90,7 +94,8 @@ export default function DesktopSidebar() {
       </nav>
 
       {/* Bottom: User + Logout */}
-      <div className="px-3 py-4 border-t border-gray-50 space-y-2">
+      <div className="px-3 py-4 border-t border-gray-50 space-y-1">
+        {/* Profile */}
         <button
           onClick={() => router.push("/profile")}
           className="w-full flex items-center gap-3 px-4 py-3 rounded-2xl hover:bg-gray-50 transition-all group"
@@ -109,6 +114,8 @@ export default function DesktopSidebar() {
             <p className="text-[11px] text-gray-400 truncate">{user?.email}</p>
           </div>
         </button>
+
+        {/* Sign out */}
         <button
           onClick={handleLogout}
           className="w-full flex items-center gap-3 px-4 py-2.5 rounded-2xl text-[13px] font-semibold text-red-500 hover:bg-red-50 transition-all"

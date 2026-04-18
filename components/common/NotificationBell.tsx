@@ -19,7 +19,11 @@ const TYPE_META: Record<string, { icon: any; bg: string; color: string }> = {
   system:  { icon: Zap,           bg: "bg-yellow-50", color: "text-yellow-500" },
 };
 
-export default function NotificationBell() {
+interface NotificationBellProps {
+  dropdownSide?: "left" | "right";
+}
+
+export default function NotificationBell({ dropdownSide = "left" }: NotificationBellProps) {
   const router = useRouter();
   const { user } = useAuth();
   const [open, setOpen] = useState(false);
@@ -75,7 +79,9 @@ export default function NotificationBell() {
 
       {/* Dropdown */}
       {open && (
-        <div className="absolute right-0 top-12 z-50 w-[340px] rounded-2xl bg-white shadow-2xl border border-gray-100 overflow-hidden">
+        <div className={`absolute top-12 z-[9999] w-[340px] rounded-2xl bg-white shadow-2xl border border-gray-100 overflow-hidden ${
+          dropdownSide === "right" ? "left-0" : "right-0"
+        }`}>
           {/* Header */}
           <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
             <div className="flex items-center gap-2">

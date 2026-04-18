@@ -161,15 +161,14 @@ export default function BookingPage() {
         commission,
         providerEarning,
         address:        profile.address || "Lagos, Nigeria",
-        status:         "pending_payment",
+        status:         "pending",
         paymentStatus:  "pending",
       });
 
       if (result.success) {
-        toast.success("Booking created! Redirecting to payment...");
-        // Redirect to new payment checkout page
+        toast.success("Booking request sent! Waiting for provider to accept.");
         setTimeout(() => {
-          router.push(`/payment/checkout?bookingId=${result.id}`);
+          router.push(`/bookings/${result.id}`);
         }, 1000);
       } else {
         throw new Error("Failed to create booking");

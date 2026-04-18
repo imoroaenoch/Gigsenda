@@ -63,7 +63,21 @@ function PaymentCheckoutContent() {
           return;
         }
 
-        const bookingData = { id: bookingSnap.id, ...bookingSnap.data() } as BookingDetails;
+        const bookingData = { id: bookingSnap.id, ...bookingSnap.data() } as BookingDetails & { status: string };
+
+        // Guard: only allow payment for accepted bookings with unpaid paymentStatus
+        const ps = (bookingData as any).paymentStatus;
+        if (bookingData.status !== "accepted") {
+          toast.error(bookingData.status === "paid" ? "This booking is already paid." : "Provider hasn't accepted this booking yet.");
+          router.push(`/bookings/${bookingId}`);
+          return;
+        }
+        if (ps === "success") {
+          toast.error("This booking is already paid.");
+          router.push(`/bookings/${bookingId}`);
+          return;
+        }
+
         setBooking(bookingData);
 
         // Fetch provider details

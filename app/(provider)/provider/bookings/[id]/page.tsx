@@ -14,19 +14,24 @@ import { useAuth } from "@/hooks/useAuth";
 import AuthGuard from "@/components/auth/AuthGuard";
 import ProviderBottomNav from "@/components/provider/ProviderBottomNav";
 import { db } from "@/lib/firebase";
-import { doc, getDoc, updateDoc, serverTimestamp } from "firebase/firestore";
+import { doc, onSnapshot, updateDoc, serverTimestamp, addDoc, collection } from "firebase/firestore";
 import { createConversation } from "@/lib/chat";
 import { notifyBookingAccepted, notifyBookingDeclined } from "@/lib/notifications";
 import { format, formatDistanceToNow } from "date-fns";
 import toast from "react-hot-toast";
 
-const STATUS_CONFIG: Record<string, { label: string; bg: string; text: string; icon: any }> = {
-  pending:    { label: "Pending",    bg: "bg-yellow-50",  text: "text-yellow-600", icon: Clock },
-  upcoming:   { label: "Confirmed", bg: "bg-blue-50",    text: "text-blue-600",   icon: CheckCircle2 },
-  completed:  { label: "Completed", bg: "bg-green-50",   text: "text-green-600",  icon: CheckCircle2 },
-  cancelled:  { label: "Cancelled", bg: "bg-red-50",     text: "text-red-500",    icon: XCircle },
-  paid:       { label: "Paid",       bg: "bg-purple-50",  text: "text-purple-600", icon: Banknote },
-  in_progress:{ label: "In Progress",bg: "bg-blue-50",   text: "text-blue-700",   icon: Loader2 },
+const STATUS_CONFIG: Record<string, { label: string; message: string; bg: string; text: string; icon: any }> = {
+  pending:     { label: "🟠 New Request",       message: "New booking request",                    bg: "bg-yellow-50",  text: "text-yellow-700", icon: Clock },
+  accepted:    { label: "🟡 Awaiting Payment",  message: "Waiting for customer payment",           bg: "bg-blue-50",    text: "text-blue-700",   icon: Clock },
+  paid:        { label: "🟢 Ready to Start",    message: "Payment received. Ready to start",       bg: "bg-green-50",   text: "text-green-700",  icon: Banknote },
+  in_progress: { label: "🔵 In Progress",       message: "You are currently working on this job",  bg: "bg-orange-50",  text: "text-orange-700", icon: Loader2 },
+  completed:   { label: "✅ Completed",          message: "Job completed",                          bg: "bg-green-50",   text: "text-green-700",  icon: CheckCircle2 },
+  rejected:    { label: "❌ Declined",           message: "You declined this request",              bg: "bg-red-50",     text: "text-red-600",    icon: XCircle },
+  cancelled:   { label: "⚫ Cancelled",          message: "Booking cancelled",                      bg: "bg-gray-100",   text: "text-gray-600",   icon: XCircle },
+  disputed:    { label: "⚠️ Under Review",      message: "A dispute has been raised. Admin is reviewing", bg: "bg-purple-50", text: "text-purple-700", icon: ShieldCheck },
+  // legacy aliases
+  upcoming:    { label: "🟢 Ready to Start",    message: "Payment received. Ready to start",       bg: "bg-green-50",   text: "text-green-700",  icon: Banknote },
+  confirmed:   { label: "🟢 Ready to Start",    message: "Payment received. Ready to start",       bg: "bg-green-50",   text: "text-green-700",  icon: Banknote },
 };
 
 export default function BookingDetailPage() {
@@ -35,28 +40,47 @@ export default function BookingDetailPage() {
   const { user, profile } = useAuth();
   const bookingId = params.id as string;
 
-  const [booking, setBooking]       = useState<any>(null);
-  const [loading, setLoading]       = useState(true);
-  const [actionId, setActionId]     = useState<string | null>(null);
+  const [booking, setBooking]         = useState<any>(null);
+  const [loading, setLoading]         = useState(true);
+  const [actionId, setActionId]       = useState<string | null>(null);
   const [chatLoading, setChatLoading] = useState(false);
+  const [showDispute, setShowDispute] = useState(false);
+  const [disputeReason, setDisputeReason] = useState("");
+  const [disputeLoading, setDisputeLoading] = useState(false);
+  const [elapsed, setElapsed]         = useState("");
 
   useEffect(() => {
     if (!bookingId) return;
-    getDoc(doc(db, "bookings", bookingId)).then((snap) => {
-      if (snap.exists()) {
-        setBooking({ id: snap.id, ...snap.data() });
-      }
+    const unsub = onSnapshot(doc(db, "bookings", bookingId), (snap) => {
+      if (snap.exists()) setBooking({ id: snap.id, ...snap.data() });
       setLoading(false);
-    }).catch(() => setLoading(false));
+    }, () => setLoading(false));
+    return () => unsub();
   }, [bookingId]);
+
+  // Live elapsed timer for in_progress
+  useEffect(() => {
+    if (booking?.status !== "in_progress" || !booking?.inProgressAt) return;
+    const tick = () => {
+      const start = booking.inProgressAt?.toDate ? booking.inProgressAt.toDate() : new Date(booking.inProgressAt);
+      const diff  = Math.floor((Date.now() - start.getTime()) / 1000);
+      const h = Math.floor(diff / 3600);
+      const m = Math.floor((diff % 3600) / 60);
+      const s = diff % 60;
+      setElapsed(h > 0 ? `${h}h ${m}m` : `${m}m ${s}s`);
+    };
+    tick();
+    const id = setInterval(tick, 1000);
+    return () => clearInterval(id);
+  }, [booking?.status, booking?.inProgressAt]);
 
   const handleAccept = async () => {
     if (!booking) return;
     setActionId("accept");
     try {
-      await updateDoc(doc(db, "bookings", booking.id), { status: "upcoming", updatedAt: serverTimestamp() });
+      await updateDoc(doc(db, "bookings", booking.id), { status: "accepted", updatedAt: serverTimestamp() });
       notifyBookingAccepted(booking.customerId, profile?.name || "Your provider", booking.id);
-      setBooking((prev: any) => ({ ...prev, status: "upcoming" }));
+      setBooking((prev: any) => ({ ...prev, status: "accepted" }));
       toast.success("Booking accepted!");
     } catch {
       toast.error("Failed to accept booking");
@@ -69,9 +93,9 @@ export default function BookingDetailPage() {
     if (!booking) return;
     setActionId("decline");
     try {
-      await updateDoc(doc(db, "bookings", booking.id), { status: "cancelled", updatedAt: serverTimestamp() });
+      await updateDoc(doc(db, "bookings", booking.id), { status: "rejected", updatedAt: serverTimestamp() });
       notifyBookingDeclined(booking.customerId, profile?.name || "Your provider", booking.id);
-      setBooking((prev: any) => ({ ...prev, status: "cancelled" }));
+      setBooking((prev: any) => ({ ...prev, status: "rejected" }));
       toast.success("Booking declined");
     } catch {
       toast.error("Failed to decline booking");
@@ -87,6 +111,7 @@ export default function BookingDetailPage() {
       await updateDoc(doc(db, "bookings", booking.id), {
         status: "in_progress",
         escrowStatus: "holding",
+        inProgressAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
       });
       setBooking((prev: any) => ({ ...prev, status: "in_progress", escrowStatus: "holding" }));
@@ -95,6 +120,78 @@ export default function BookingDetailPage() {
       toast.error("Failed to update status");
     } finally {
       setActionId(null);
+    }
+  };
+
+  const handleMarkCompleted = async () => {
+    if (!booking) return;
+    if (!confirm("Signal to customer that the job is done? They will be asked to confirm and release payment.")) return;
+    setActionId("complete");
+    try {
+      await updateDoc(doc(db, "bookings", booking.id), {
+        status: "completed",
+        completedAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+      });
+      await addDoc(collection(db, "notifications"), {
+        userId: booking.customerId,
+        title: "Service Completed!",
+        message: `Your provider has marked the job as done. Please confirm to release payment.`,
+        type: "booking",
+        bookingId: booking.id,
+        read: false,
+        createdAt: serverTimestamp(),
+      });
+      toast.success("Job marked as completed! Waiting for customer to confirm.");
+    } catch {
+      toast.error("Failed to update status");
+    } finally {
+      setActionId(null);
+    }
+  };
+
+  const handleRaiseDispute = async () => {
+    if (!disputeReason.trim() || disputeReason.length < 20) {
+      toast.error("Please describe the issue (min 20 characters)");
+      return;
+    }
+    setDisputeLoading(true);
+    try {
+      await addDoc(collection(db, "disputes"), {
+        bookingId: booking.id,
+        raisedBy: "provider",
+        customerId: booking.customerId,
+        providerId: user?.uid,
+        category: "other",
+        description: disputeReason.trim(),
+        status: "open",
+        createdAt: serverTimestamp(),
+      });
+      await updateDoc(doc(db, "bookings", booking.id), { status: "disputed", updatedAt: serverTimestamp() });
+      await addDoc(collection(db, "notifications"), {
+        userId: "admin",
+        title: "New Dispute (Provider)",
+        message: `Provider raised a dispute for booking #${booking.id.slice(-8).toUpperCase()}`,
+        type: "dispute",
+        bookingId: booking.id,
+        read: false,
+        createdAt: serverTimestamp(),
+      });
+      await addDoc(collection(db, "notifications"), {
+        userId: booking.customerId,
+        title: "Dispute Raised",
+        message: "Your provider has raised an issue with this booking. Admin will review within 24 hours.",
+        type: "dispute",
+        bookingId: booking.id,
+        read: false,
+        createdAt: serverTimestamp(),
+      });
+      setShowDispute(false);
+      toast.success("Dispute submitted. Admin will review within 24 hours.");
+    } catch {
+      toast.error("Failed to submit dispute");
+    } finally {
+      setDisputeLoading(false);
     }
   };
 
@@ -175,13 +272,18 @@ export default function BookingDetailPage() {
               <p className="text-[10px] font-bold text-text-light">#{booking.id.slice(-8).toUpperCase()}</p>
             </div>
             <div className="ml-auto">
-              <span className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-black ${status.bg} ${status.text}`}>
-                <StatusIcon className="h-3.5 w-3.5" />
+              <span className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[11px] font-black ${status.bg} ${status.text}`}>
                 {status.label}
               </span>
             </div>
           </div>
         </header>
+
+        {/* Status message banner */}
+        <div className={`px-5 lg:px-8 py-3 flex items-center gap-2 border-b ${status.bg} ${status.text}`}>
+          <StatusIcon className="h-4 w-4 flex-shrink-0" />
+          <p className="text-[12px] font-black">{status.message}</p>
+        </div>
 
         {/* Two-column on desktop */}
         <div className="px-5 lg:px-8 py-5 lg:py-7 lg:grid lg:grid-cols-2 lg:gap-8 lg:items-start">
@@ -347,7 +449,17 @@ export default function BookingDetailPage() {
               </div>
             )}
 
-            {booking.status === "upcoming" && (
+            {booking.status === "accepted" && (
+              <div className="rounded-2xl bg-white border border-gray-100 shadow-sm p-5">
+                <p className="text-[10px] font-black uppercase tracking-wider text-text-light mb-3">Status</p>
+                <div className="flex items-center gap-2 rounded-xl bg-yellow-50 border border-yellow-100 p-3">
+                  <Clock className="h-4 w-4 text-yellow-500 flex-shrink-0" />
+                  <p className="text-[12px] font-bold text-yellow-700">Waiting for customer payment</p>
+                </div>
+              </div>
+            )}
+
+            {booking.status === "paid" && (
               <div className="rounded-2xl bg-white border border-gray-100 shadow-sm p-5">
                 <p className="text-[10px] font-black uppercase tracking-wider text-text-light mb-3">Actions</p>
                 <button
@@ -357,7 +469,58 @@ export default function BookingDetailPage() {
                 >
                   {actionId === "progress"
                     ? <Loader2 className="h-4 w-4 animate-spin mx-auto" />
-                    : "Mark as In Progress"}
+                    : "Start Job"}
+                </button>
+              </div>
+            )}
+
+            {booking.status === "in_progress" && (
+              <div className="rounded-2xl bg-white border border-gray-100 shadow-sm p-5 space-y-3">
+                <p className="text-[10px] font-black uppercase tracking-wider text-text-light mb-1">Actions</p>
+                {/* Live timer */}
+                {elapsed && (
+                  <div className="flex items-center gap-2 rounded-xl bg-blue-50 border border-blue-100 p-3">
+                    <Clock className="h-4 w-4 text-blue-500 flex-shrink-0" />
+                    <p className="text-[12px] font-black text-blue-700">In progress for {elapsed}</p>
+                  </div>
+                )}
+                <button
+                  onClick={handleMarkCompleted}
+                  disabled={!!actionId}
+                  className="w-full rounded-xl bg-green-500 hover:bg-green-600 py-3.5 text-[13px] font-black text-white active:scale-95 transition-all disabled:opacity-60"
+                >
+                  {actionId === "complete"
+                    ? <Loader2 className="h-4 w-4 animate-spin mx-auto" />
+                    : "✅ Mark as Completed"}
+                </button>
+                <button
+                  onClick={() => setShowDispute(true)}
+                  className="w-full rounded-xl border-2 border-red-200 bg-red-50 hover:bg-red-100 py-3 text-[12px] font-black text-red-500 active:scale-95 transition-all"
+                >
+                  ⚠️ Report an Issue
+                </button>
+              </div>
+            )}
+
+            {booking.status === "completed" && (
+              <div className="rounded-2xl bg-white border border-gray-100 shadow-sm p-5 space-y-3">
+                <p className="text-[10px] font-black uppercase tracking-wider text-text-light mb-1">Settlement</p>
+                <div className="rounded-xl bg-green-50 border border-green-200 p-4 text-center">
+                  <p className="text-[11px] font-bold text-green-700">Your earnings</p>
+                  <p className="text-[28px] font-black text-green-600 mt-1">₦{net.toLocaleString()}</p>
+                  <p className="text-[10px] font-bold text-green-600 mt-0.5">after 10% platform fee</p>
+                </div>
+                <div className="flex items-start gap-2 rounded-xl bg-orange-50 border border-orange-100 p-3">
+                  <ShieldCheck className="h-4 w-4 text-orange-500 flex-shrink-0 mt-0.5" />
+                  <p className="text-[10px] font-bold text-orange-700 leading-snug">
+                    Funds will settle to your bank within 24 hours of completion.
+                  </p>
+                </div>
+                <button
+                  onClick={() => router.push("/provider/earnings")}
+                  className="w-full rounded-xl bg-primary/10 border border-primary/20 hover:bg-primary/20 py-3 text-[12px] font-black text-primary active:scale-95 transition-all"
+                >
+                  View Earnings
                 </button>
               </div>
             )}
@@ -392,6 +555,34 @@ export default function BookingDetailPage() {
         </div>
 
         <ProviderBottomNav />
+
+        {/* Dispute Modal */}
+        {showDispute && (
+          <div className="fixed inset-0 z-50 bg-black/50 flex items-end justify-center p-4">
+            <div className="bg-white rounded-3xl w-full max-w-lg p-6">
+              <h3 className="text-[16px] font-black text-text mb-1">Report an Issue</h3>
+              <p className="text-[12px] font-bold text-text-light mb-4">Describe the problem. Funds will be held until admin resolves it.</p>
+              <textarea
+                value={disputeReason}
+                onChange={e => setDisputeReason(e.target.value)}
+                rows={4}
+                placeholder="Describe the issue in detail (min 20 characters)..."
+                className="w-full border-2 border-gray-200 rounded-xl p-3 text-sm resize-none focus:outline-none focus:border-orange-400"
+              />
+              <p className="text-[10px] font-bold text-text-light mt-1 text-right">{disputeReason.length}/1000</p>
+              <div className="flex gap-3 mt-4">
+                <button onClick={() => setShowDispute(false)}
+                  className="flex-1 py-3 border-2 border-gray-200 text-gray-600 font-semibold rounded-2xl">
+                  Cancel
+                </button>
+                <button onClick={handleRaiseDispute} disabled={disputeLoading}
+                  className="flex-1 py-3 bg-red-500 text-white font-black rounded-2xl hover:bg-red-600 disabled:opacity-50">
+                  {disputeLoading ? "Submitting..." : "Submit Dispute"}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </main>
     </AuthGuard>
   );
