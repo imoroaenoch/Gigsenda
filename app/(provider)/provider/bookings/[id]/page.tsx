@@ -264,7 +264,7 @@ export default function BookingDetailPage() {
         {/* Header */}
         <header className="bg-white border-b border-gray-100 px-5 lg:px-8 pt-12 pb-4 lg:pt-7 lg:pb-5 sticky top-0 z-40">
           <div className="flex items-center gap-3">
-            <button onClick={() => router.back()} className="rounded-xl p-2 hover:bg-gray-100 transition-colors">
+            <button onClick={() => router.back()} style={{ touchAction: 'manipulation', WebkitTapHighlightColor: 'transparent' }} className="rounded-xl p-2 active:bg-gray-100">
               <ArrowLeft className="h-5 w-5 text-text" />
             </button>
             <div>
@@ -323,7 +323,8 @@ export default function BookingDetailPage() {
                 <button
                   onClick={handleOpenChat}
                   disabled={chatLoading}
-                  className="flex items-center gap-1.5 rounded-xl bg-primary/10 px-3 py-2 text-[12px] font-black text-primary active:scale-95 transition-all hover:bg-primary/20 disabled:opacity-60"
+                  style={{ touchAction: 'manipulation', WebkitTapHighlightColor: 'transparent' }}
+                  className="flex items-center gap-1.5 rounded-xl bg-primary/10 px-3 py-2 text-[12px] font-black text-primary active:opacity-80 disabled:opacity-60"
                 >
                   {chatLoading
                     ? <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent" />
@@ -435,14 +436,16 @@ export default function BookingDetailPage() {
                 <button
                   onClick={handleAccept}
                   disabled={!!actionId}
-                  className="w-full rounded-xl bg-green-500 hover:bg-green-600 py-3.5 text-[13px] font-black text-white active:scale-95 transition-all disabled:opacity-60"
+                  style={{ touchAction: 'manipulation', WebkitTapHighlightColor: 'transparent' }}
+                  className="w-full rounded-xl bg-green-500 py-3.5 text-[13px] font-black text-white active:opacity-80 disabled:opacity-60"
                 >
                   {actionId === "accept" ? <Loader2 className="h-4 w-4 animate-spin mx-auto" /> : "✓ Accept Booking"}
                 </button>
                 <button
                   onClick={handleDecline}
                   disabled={!!actionId}
-                  className="w-full rounded-xl bg-red-50 border border-red-200 hover:bg-red-100 py-3.5 text-[13px] font-black text-red-500 active:scale-95 transition-all disabled:opacity-60"
+                  style={{ touchAction: 'manipulation', WebkitTapHighlightColor: 'transparent' }}
+                  className="w-full rounded-xl bg-red-50 border border-red-200 py-3.5 text-[13px] font-black text-red-500 active:opacity-80 disabled:opacity-60"
                 >
                   {actionId === "decline" ? <Loader2 className="h-4 w-4 animate-spin mx-auto" /> : "✕ Decline Booking"}
                 </button>
@@ -465,7 +468,8 @@ export default function BookingDetailPage() {
                 <button
                   onClick={handleMarkInProgress}
                   disabled={!!actionId}
-                  className="w-full rounded-xl bg-primary hover:bg-primary/90 py-3.5 text-[13px] font-black text-white active:scale-95 transition-all disabled:opacity-60"
+                  style={{ touchAction: 'manipulation', WebkitTapHighlightColor: 'transparent' }}
+                  className="w-full rounded-xl bg-primary py-3.5 text-[13px] font-black text-white active:opacity-80 disabled:opacity-60"
                 >
                   {actionId === "progress"
                     ? <Loader2 className="h-4 w-4 animate-spin mx-auto" />
@@ -487,7 +491,8 @@ export default function BookingDetailPage() {
                 <button
                   onClick={handleMarkCompleted}
                   disabled={!!actionId}
-                  className="w-full rounded-xl bg-green-500 hover:bg-green-600 py-3.5 text-[13px] font-black text-white active:scale-95 transition-all disabled:opacity-60"
+                  style={{ touchAction: 'manipulation', WebkitTapHighlightColor: 'transparent' }}
+                  className="w-full rounded-xl bg-green-500 py-3.5 text-[13px] font-black text-white active:opacity-80 disabled:opacity-60"
                 >
                   {actionId === "complete"
                     ? <Loader2 className="h-4 w-4 animate-spin mx-auto" />
@@ -495,7 +500,8 @@ export default function BookingDetailPage() {
                 </button>
                 <button
                   onClick={() => setShowDispute(true)}
-                  className="w-full rounded-xl border-2 border-red-200 bg-red-50 hover:bg-red-100 py-3 text-[12px] font-black text-red-500 active:scale-95 transition-all"
+                  style={{ touchAction: 'manipulation', WebkitTapHighlightColor: 'transparent' }}
+                  className="w-full rounded-xl border-2 border-red-200 bg-red-50 py-3 text-[12px] font-black text-red-500 active:opacity-80"
                 >
                   ⚠️ Report an Issue
                 </button>
@@ -518,7 +524,8 @@ export default function BookingDetailPage() {
                 </div>
                 <button
                   onClick={() => router.push("/provider/earnings")}
-                  className="w-full rounded-xl bg-primary/10 border border-primary/20 hover:bg-primary/20 py-3 text-[12px] font-black text-primary active:scale-95 transition-all"
+                  style={{ touchAction: 'manipulation', WebkitTapHighlightColor: 'transparent' }}
+                  className="w-full rounded-xl bg-primary/10 border border-primary/20 py-3 text-[12px] font-black text-primary active:opacity-80"
                 >
                   View Earnings
                 </button>
@@ -537,7 +544,8 @@ export default function BookingDetailPage() {
                   <span className="text-[11px] font-bold text-text-light">Chat</span>
                   <button
                     onClick={handleOpenChat}
-                    className="text-[11px] font-black text-primary hover:underline"
+                    style={{ touchAction: 'manipulation', WebkitTapHighlightColor: 'transparent' }}
+                    className="text-[11px] font-black text-primary active:opacity-70"
                   >
                     Open conversation
                   </button>
@@ -576,7 +584,8 @@ export default function BookingDetailPage() {
                   Cancel
                 </button>
                 <button onClick={handleRaiseDispute} disabled={disputeLoading}
-                  className="flex-1 py-3 bg-red-500 text-white font-black rounded-2xl hover:bg-red-600 disabled:opacity-50">
+                  style={{ touchAction: 'manipulation', WebkitTapHighlightColor: 'transparent' }}
+                  className="flex-1 py-3 bg-red-500 text-white font-black rounded-2xl active:opacity-80 disabled:opacity-50">
                   {disputeLoading ? "Submitting..." : "Submit Dispute"}
                 </button>
               </div>

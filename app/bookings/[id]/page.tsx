@@ -295,7 +295,8 @@ export default function BookingDetailPage() {
           <div className="flex items-center space-x-3">
             <button
               onClick={() => router.back()}
-              className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
+              style={{ touchAction: 'manipulation', WebkitTapHighlightColor: 'transparent' }}
+              className="p-2 rounded-lg active:bg-gray-100"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -503,11 +504,13 @@ export default function BookingDetailPage() {
                 </div>
                 <button
                   onClick={() => router.push(`/payment/checkout?bookingId=${booking.id}`)}
-                  className="w-full py-4 px-4 bg-[#FF8C00] text-white font-black text-[16px] rounded-2xl hover:bg-[#E67D00] active:scale-[0.98] transition-all shadow-md">
+                  style={{ touchAction: 'manipulation', WebkitTapHighlightColor: 'transparent' }}
+                  className="w-full py-4 px-4 bg-[#FF8C00] text-white font-black text-[16px] rounded-2xl active:opacity-80 shadow-md">
                   Pay Now — ₦{bookingAmount.toLocaleString()}
                 </button>
                 <button onClick={handleCancelBooking} disabled={actionLoading}
-                  className="w-full py-2 text-sm text-red-500 hover:underline disabled:opacity-50">
+                  style={{ touchAction: 'manipulation', WebkitTapHighlightColor: 'transparent' }}
+                  className="w-full py-2 text-sm text-red-500 disabled:opacity-50">
                   {actionLoading ? "Cancelling..." : "Cancel Booking"}
                 </button>
               </>
@@ -583,11 +586,13 @@ export default function BookingDetailPage() {
                   <p className="text-xs text-orange-700 mt-1">{getCustomerStatusMessage("in_progress")} — confirm below once done to release payment. Funds auto-release after 72 hours.</p>
                 </div>
                 <button onClick={handleMarkCompleted} disabled={actionLoading}
-                  className="w-full py-4 px-4 bg-green-500 text-white font-black text-[15px] rounded-2xl hover:bg-green-600 active:scale-[0.98] transition-all disabled:opacity-50 shadow-md shadow-green-200">
+                  style={{ touchAction: 'manipulation', WebkitTapHighlightColor: 'transparent' }}
+                  className="w-full py-4 px-4 bg-green-500 text-white font-black text-[15px] rounded-2xl active:opacity-80 disabled:opacity-50 shadow-md shadow-green-200">
                   {actionLoading ? "Processing..." : "✅ Service Done — Release Payment to Provider"}
                 </button>
                 <button onClick={() => setShowDisputeModal(true)}
-                  className="w-full py-3 px-4 border-2 border-red-300 text-red-500 font-semibold rounded-2xl hover:bg-red-50 transition-colors text-sm">
+                  style={{ touchAction: 'manipulation', WebkitTapHighlightColor: 'transparent' }}
+                  className="w-full py-3 px-4 border-2 border-red-300 text-red-500 font-semibold rounded-2xl active:opacity-80 text-sm">
                   ⚠️ Something went wrong — Raise a Dispute
                 </button>
               </>
@@ -629,7 +634,8 @@ export default function BookingDetailPage() {
                   </div>
                 </div>
                 <button onClick={handleLeaveReview}
-                  className="w-full py-4 px-4 bg-[#FF8C00] text-white font-black text-[15px] rounded-2xl hover:bg-[#E67D00] active:scale-[0.98] transition-all shadow-md">
+                  style={{ touchAction: 'manipulation', WebkitTapHighlightColor: 'transparent' }}
+                  className="w-full py-4 px-4 bg-[#FF8C00] text-white font-black text-[15px] rounded-2xl active:opacity-80 shadow-md">
                   ⭐ Leave a Review
                 </button>
               </>
@@ -663,7 +669,8 @@ export default function BookingDetailPage() {
           {/* Cancel button — only while waiting for provider (no payment made) */}
           {isCustomer && booking.status === "pending" && (
             <button onClick={handleCancelBooking} disabled={actionLoading}
-              className="w-full py-3 px-4 bg-red-500 text-white font-semibold rounded-2xl hover:bg-red-600 transition-colors disabled:opacity-50">
+              style={{ touchAction: 'manipulation', WebkitTapHighlightColor: 'transparent' }}
+              className="w-full py-3 px-4 bg-red-500 text-white font-semibold rounded-2xl active:opacity-80 disabled:opacity-50">
               {actionLoading ? "Cancelling..." : "Cancel Booking"}
             </button>
           )}
@@ -673,7 +680,8 @@ export default function BookingDetailPage() {
             // Provider: payment received, ready to start
             if (booking.status === "paid") return (
               <button onClick={handleMarkInProgress} disabled={actionLoading}
-                className="w-full py-3 px-4 bg-[#FF8C00] text-white font-semibold rounded-2xl hover:bg-[#E67D00] transition-colors disabled:opacity-50">
+                style={{ touchAction: 'manipulation', WebkitTapHighlightColor: 'transparent' }}
+                className="w-full py-3 px-4 bg-[#FF8C00] text-white font-semibold rounded-2xl active:opacity-80 disabled:opacity-50">
                 {actionLoading ? "Updating..." : "Start Job — Mark In Progress"}
               </button>
             );
@@ -695,7 +703,8 @@ export default function BookingDetailPage() {
           {/* Message button — always visible for active bookings */}
           {!["cancelled", "rejected"].includes(booking.status) && (
             <button onClick={handleSendMessage}
-              className="w-full py-3 px-4 border-2 border-gray-200 text-gray-700 font-semibold rounded-2xl hover:bg-gray-50 transition-colors flex items-center justify-center gap-2">
+              style={{ touchAction: 'manipulation', WebkitTapHighlightColor: 'transparent' }}
+              className="w-full py-3 px-4 border-2 border-gray-200 text-gray-700 font-semibold rounded-2xl active:bg-gray-50 flex items-center justify-center gap-2">
               <MessageSquare className="h-4 w-4" />
               Send Message
             </button>
@@ -730,11 +739,13 @@ export default function BookingDetailPage() {
             <p className="text-[10px] font-bold text-gray-400 mt-1 text-right">{disputeReason.length}/1000</p>
             <div className="flex gap-3 mt-4">
               <button onClick={() => setShowDisputeModal(false)}
-                className="flex-1 py-3 border-2 border-gray-200 text-gray-600 font-semibold rounded-2xl">
+                style={{ touchAction: 'manipulation', WebkitTapHighlightColor: 'transparent' }}
+                className="flex-1 py-3 border-2 border-gray-200 text-gray-600 font-semibold rounded-2xl active:opacity-70">
                 Cancel
               </button>
               <button onClick={handleRaiseDispute} disabled={disputeLoading}
-                className="flex-1 py-3 bg-red-500 text-white font-semibold rounded-2xl hover:bg-red-600 disabled:opacity-50">
+                style={{ touchAction: 'manipulation', WebkitTapHighlightColor: 'transparent' }}
+                className="flex-1 py-3 bg-red-500 text-white font-semibold rounded-2xl active:opacity-80 disabled:opacity-50">
                 {disputeLoading ? "Submitting..." : "Submit Dispute"}
               </button>
             </div>

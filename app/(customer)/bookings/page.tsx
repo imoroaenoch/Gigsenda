@@ -81,7 +81,8 @@ function CardCTA({ booking, onCancel, onPay, onManage, onReview, actionLoading }
     return (
       <button
         onClick={(e) => { e.stopPropagation(); onPay(); }}
-        className="rounded-xl bg-gray-900 px-4 py-2 text-[11px] font-bold text-white active:scale-95 transition-all"
+        style={{ touchAction: 'manipulation', WebkitTapHighlightColor: 'transparent' }}
+        className="rounded-xl bg-gray-900 px-4 py-2 text-[11px] font-bold text-white active:opacity-80"
       >
         Pay Now
       </button>
@@ -91,7 +92,8 @@ function CardCTA({ booking, onCancel, onPay, onManage, onReview, actionLoading }
     return (
       <button
         onClick={(e) => { e.stopPropagation(); onManage(); }}
-        className="rounded-xl bg-gray-900 px-4 py-2 text-[11px] font-bold text-white active:scale-95 transition-all"
+        style={{ touchAction: 'manipulation', WebkitTapHighlightColor: 'transparent' }}
+        className="rounded-xl bg-gray-900 px-4 py-2 text-[11px] font-bold text-white active:opacity-80"
       >
         Track
       </button>
@@ -101,7 +103,8 @@ function CardCTA({ booking, onCancel, onPay, onManage, onReview, actionLoading }
     return (
       <button
         onClick={(e) => { e.stopPropagation(); onManage(); }}
-        className="rounded-xl bg-gray-900 px-4 py-2 text-[11px] font-bold text-white active:scale-95 transition-all"
+        style={{ touchAction: 'manipulation', WebkitTapHighlightColor: 'transparent' }}
+        className="rounded-xl bg-gray-900 px-4 py-2 text-[11px] font-bold text-white active:opacity-80"
       >
         Manage
       </button>
@@ -111,7 +114,8 @@ function CardCTA({ booking, onCancel, onPay, onManage, onReview, actionLoading }
     return (
       <button
         onClick={(e) => { e.stopPropagation(); onReview(); }}
-        className="flex items-center gap-1.5 rounded-xl bg-gray-100 px-4 py-2 text-[11px] font-bold text-gray-700 active:scale-95 transition-all"
+        style={{ touchAction: 'manipulation', WebkitTapHighlightColor: 'transparent' }}
+        className="flex items-center gap-1.5 rounded-xl bg-gray-100 px-4 py-2 text-[11px] font-bold text-gray-700 active:opacity-80"
       >
         <Star className="h-3 w-3" />
         Review
@@ -123,7 +127,8 @@ function CardCTA({ booking, onCancel, onPay, onManage, onReview, actionLoading }
       <button
         onClick={(e) => { e.stopPropagation(); onCancel(); }}
         disabled={actionLoading}
-        className="rounded-xl bg-gray-100 px-4 py-2 text-[11px] font-bold text-gray-500 active:scale-95 transition-all disabled:opacity-60"
+        style={{ touchAction: 'manipulation', WebkitTapHighlightColor: 'transparent' }}
+        className="rounded-xl bg-gray-100 px-4 py-2 text-[11px] font-bold text-gray-500 active:opacity-80 disabled:opacity-60"
       >
         {actionLoading ? "..." : "Cancel"}
       </button>
@@ -229,7 +234,7 @@ export default function BookingsPage() {
         {/* ── Header ── */}
         <header className="sticky top-0 z-50 bg-white border-b border-gray-100 px-5 pt-5 pb-3 lg:pt-6 lg:px-8">
           <div className="flex items-center gap-3 mb-3">
-            <button onClick={() => router.push("/home")} className="rounded-full p-2 hover:bg-gray-100">
+            <button onClick={() => router.push("/home")} style={{ touchAction: 'manipulation', WebkitTapHighlightColor: 'transparent' }} className="rounded-full p-2 active:opacity-70">
               <ArrowLeft className="h-5 w-5 text-gray-600" />
             </button>
             <h1 className="text-[20px] font-black text-gray-900">My Bookings</h1>
@@ -244,12 +249,13 @@ export default function BookingsPage() {
                 <button
                   key={tab.key}
                   onClick={() => setActiveTab(tab.key)}
-                  className={`flex-shrink-0 flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-[11px] font-bold transition-all whitespace-nowrap ${
+                  style={{ touchAction: 'manipulation', WebkitTapHighlightColor: 'transparent' }}
+                  className={`flex-shrink-0 flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-[11px] font-bold whitespace-nowrap ${
                     isActive
                       ? "bg-gray-900 text-white shadow-sm"
                       : hasAlert
                       ? "bg-amber-50 text-amber-700 border border-amber-200"
-                      : "bg-gray-100 text-gray-500 hover:bg-gray-200"
+                      : "bg-gray-100 text-gray-500"
                   }`}
                 >
                   {tab.label}
@@ -301,12 +307,12 @@ export default function BookingsPage() {
                   <div
                     key={booking.id}
                     onClick={() => router.push(`/bookings/${booking.id}`)}
-                    className={`bg-white rounded-2xl border-2 shadow-sm cursor-pointer transition-all hover:shadow-md overflow-hidden ${
+                    style={{ touchAction: 'manipulation', WebkitTapHighlightColor: 'transparent', cursor: 'pointer' }}
+                    className={`bg-white rounded-2xl border-2 shadow-sm overflow-hidden active:opacity-90 ${
                       ns === "accepted"    ? "border-amber-300" :
                       ns === "paid"        ? "border-blue-300" :
                       ns === "in_progress" ? "border-indigo-300" :
                       ns === "completed"   ? "border-emerald-300" :
-                      ns === "pending"     ? "border-gray-200" :
                       "border-gray-200"
                     }`}
                   >
@@ -405,7 +411,8 @@ export default function BookingsPage() {
                           <button
                             onClick={(e) => { e.stopPropagation(); handleOpenChat(booking); }}
                             disabled={chatLoading === booking.id}
-                            className="h-9 w-9 flex items-center justify-center rounded-lg bg-gray-100 text-gray-500 hover:bg-gray-200 active:scale-95 transition-all disabled:opacity-60"
+                            style={{ touchAction: 'manipulation', WebkitTapHighlightColor: 'transparent' }}
+                            className="h-9 w-9 flex items-center justify-center rounded-lg bg-gray-100 text-gray-500 active:opacity-70 disabled:opacity-60"
                           >
                             {chatLoading === booking.id
                               ? <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -427,7 +434,8 @@ export default function BookingsPage() {
                         {ns === "completed" && (
                           <button
                             onClick={(e) => { e.stopPropagation(); router.push(`/book/${booking.providerId}`); }}
-                            className="rounded-lg bg-gray-100 px-3 py-1.5 text-[11px] font-bold text-gray-600 hover:bg-gray-200 active:scale-95 transition-all"
+                            style={{ touchAction: 'manipulation', WebkitTapHighlightColor: 'transparent' }}
+                            className="rounded-lg bg-gray-100 px-3 py-1.5 text-[11px] font-bold text-gray-600 active:opacity-70"
                           >
                             Rebook
                           </button>
@@ -437,7 +445,8 @@ export default function BookingsPage() {
                         {(ns === "cancelled" || ns === "rejected") && booking.providerId && (
                           <button
                             onClick={(e) => { e.stopPropagation(); router.push(`/book/${booking.providerId}`); }}
-                            className="rounded-lg bg-gray-900 px-3 py-1.5 text-[11px] font-bold text-white hover:bg-gray-700 active:scale-95 transition-all"
+                            style={{ touchAction: 'manipulation', WebkitTapHighlightColor: 'transparent' }}
+                            className="rounded-lg bg-gray-900 px-3 py-1.5 text-[11px] font-bold text-white active:opacity-70"
                           >
                             Book Again
                           </button>
@@ -474,19 +483,19 @@ export default function BookingsPage() {
             <div className="p-1 rounded-xl bg-[#FF8C00]/10"><Calendar className="h-5 w-5" /></div>
             <span className="text-[9px] font-black uppercase tracking-widest">Bookings</span>
           </button>
-          <button className="flex flex-col items-center gap-1 text-gray-400" onClick={() => router.push("/chat")}>
+          <button style={{ touchAction: 'manipulation', WebkitTapHighlightColor: 'transparent' }} className="flex flex-col items-center gap-1 text-gray-400" onClick={() => router.push("/chat")}>
             <div className="p-1"><MessageIcon className="h-5 w-5" /></div>
             <span className="text-[9px] font-black uppercase tracking-widest">Chat</span>
           </button>
-          <button className="flex flex-col items-center gap-1 text-gray-400" onClick={() => router.push("/home")}>
+          <button style={{ touchAction: 'manipulation', WebkitTapHighlightColor: 'transparent' }} className="flex flex-col items-center gap-1 text-gray-400" onClick={() => router.push("/home")}>
             <div className="p-1"><HomeIcon className="h-5 w-5" /></div>
             <span className="text-[9px] font-black uppercase tracking-widest">Home</span>
           </button>
-          <button className="flex flex-col items-center gap-1 text-gray-400" onClick={() => router.push("/search")}>
+          <button style={{ touchAction: 'manipulation', WebkitTapHighlightColor: 'transparent' }} className="flex flex-col items-center gap-1 text-gray-400" onClick={() => router.push("/search")}>
             <div className="p-1"><Briefcase className="h-5 w-5" /></div>
             <span className="text-[9px] font-black uppercase tracking-widest">Services</span>
           </button>
-          <button className="flex flex-col items-center gap-1 text-gray-400" onClick={() => router.push("/profile")}>
+          <button style={{ touchAction: 'manipulation', WebkitTapHighlightColor: 'transparent' }} className="flex flex-col items-center gap-1 text-gray-400" onClick={() => router.push("/profile")}>
             <div className="p-1"><UserIcon className="h-5 w-5" /></div>
             <span className="text-[9px] font-black uppercase tracking-widest">Profile</span>
           </button>
