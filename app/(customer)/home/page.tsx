@@ -2,7 +2,7 @@
 
 export const dynamic = 'force-dynamic';
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { 
   Search, 
@@ -41,7 +41,7 @@ import { SearchFilters } from "@/lib/search";
 import AuthGuard from "@/components/auth/AuthGuard";
 import BottomNav from "@/components/common/BottomNav";
 import NotificationBell from "@/components/common/NotificationBell";
-import { subscribeCategoriesWithSubs, CategoryWithSubs } from "@/lib/categories";
+import { subscribeActiveCategories, CategoryWithSubs } from "@/lib/categories";
 
 const CATEGORY_ICONS: Record<string, any> = {
   "Barber": Scissors,
@@ -91,8 +91,6 @@ export default function HomePage() {
   // Hero banner slides
   const [currentSlide, setCurrentSlide] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
-  const [touchStart, setTouchStart] = useState(0);
-  const [touchEnd, setTouchEnd] = useState(0);
 
   const slides = [
     {
@@ -130,54 +128,76 @@ export default function HomePage() {
     },
   ];
 
+  const carouselRef = useRef<HTMLDivElement>(null);
+  const scrollPauseTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Scroll carousel to a specific card index
+  const scrollToSlide = (index: number) => {
+    const el = carouselRef.current;
+    if (!el) return;
+    const card = el.children[index] as HTMLElement;
+    if (!card) return;
+    const containerWidth = el.offsetWidth;
+    const cardWidth = card.offsetWidth;
+    el.scrollTo({ left: card.offsetLeft - (containerWidth - cardWidth) / 2, behavior: "smooth" });
+    setCurrentSlide(index);
+  };
+
+  // Sync dot indicator when user manually scrolls
+  const handleCarouselScroll = () => {
+    const el = carouselRef.current;
+    if (!el) return;
+    const center = el.scrollLeft + el.offsetWidth / 2;
+    let closest = 0;
+    let minDist = Infinity;
+    Array.from(el.children).forEach((child, i) => {
+      const c = child as HTMLElement;
+      const cardCenter = c.offsetLeft + c.offsetWidth / 2;
+      const dist = Math.abs(center - cardCenter);
+      if (dist < minDist) { minDist = dist; closest = i; }
+    });
+    setCurrentSlide(closest);
+    setIsPaused(true);
+  };
+
+  // Resume auto-rotate after user stops scrolling
+  const handleCarouselScrollEnd = () => {
+    if (scrollPauseTimer.current) clearTimeout(scrollPauseTimer.current);
+    scrollPauseTimer.current = setTimeout(() => setIsPaused(false), 2000);
+  };
+
+  // On mount: scroll to first card (Hire a Service Man, index 0)
+  useEffect(() => {
+    const el = carouselRef.current;
+    if (!el) return;
+    requestAnimationFrame(() => {
+      const card = el.children[0] as HTMLElement;
+      if (!card) return;
+      el.scrollLeft = card.offsetLeft - (el.offsetWidth - card.offsetWidth) / 2;
+    });
+  }, []);
+
   // Auto-rotate slides
   useEffect(() => {
     if (isPaused || !slides || slides.length === 0) return;
-    
     const interval = setInterval(() => {
-      setCurrentSlide((prev) => (prev + 1) % slides.length);
+      setCurrentSlide((prev) => {
+        const next = (prev + 1) % slides.length;
+        scrollToSlide(next);
+        return next;
+      });
     }, 4000);
-
     return () => clearInterval(interval);
-  }, [isPaused, slides]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isPaused, slides.length]);
 
-  // Touch handlers for swipe functionality
-  const handleTouchStart = (e: React.TouchEvent) => {
-    setTouchEnd(0);
-    setTouchStart(e.targetTouches[0].clientX);
-  };
-
-  const handleTouchMove = (e: React.TouchEvent) => {
-    setTouchEnd(e.targetTouches[0].clientX);
-  };
-
-  const handleTouchEnd = () => {
-    if (!touchStart || !touchEnd) return;
-    
-    const distance = touchStart - touchEnd;
-    const isLeftSwipe = distance > 50;
-    const isRightSwipe = distance < -50;
-
-    if (isLeftSwipe) {
-      // Swipe left - go to next slide
-      setCurrentSlide((prev) => (prev + 1) % slides.length);
-    } else if (isRightSwipe) {
-      // Swipe right - go to previous slide
-      setCurrentSlide((prev) => (prev - 1 + slides.length) % slides.length);
-    }
-  };
-
-  // Navigate to specific slide
-  const goToSlide = (index: number) => {
-    setCurrentSlide(index);
-  };
   const [providersList, setProvidersList] = useState<any[]>([]);
   const [isDataLoading, setIsDataLoading] = useState(true);
   const [categories, setCategories] = useState<CategoryWithSubs[]>([]);
   const [favorites, setFavorites] = useState<string[]>([]);
 
   useEffect(() => {
-    const unsub = subscribeCategoriesWithSubs((data) => setCategories(data));
+    const unsub = subscribeActiveCategories((data) => setCategories(data));
     return () => unsub();
   }, []);
 
@@ -309,8 +329,8 @@ export default function HomePage() {
         <div className="h-[56px] lg:hidden" />
 
         {/* ── HEADER ── */}
-        <div className="bg-gradient-to-b from-[#FFF5E9] to-white">
-          <header className="px-4 pt-4 pb-4 lg:pt-8 lg:pb-6 max-w-7xl mx-auto lg:px-8">
+        <div className="bg-white">
+          <header className="px-4 pt-2 pb-2 lg:pt-8 lg:pb-6 max-w-7xl mx-auto lg:px-8">
 
             {/* Desktop top row: title + actions */}
             <div className="hidden lg:flex items-center justify-between">
@@ -354,14 +374,14 @@ export default function HomePage() {
             </div>
 
             {/* Mobile-only greeting */}
-            <div className="mt-3 lg:hidden">
+            <div className="mt-5 lg:hidden">
               <p className="text-[12px] font-medium text-gray-400">Hello, {firstName} 👋</p>
-              <h2 className="text-[20px] font-black text-gray-900 leading-tight">What service do you need?</h2>
+              <h2 className="text-[17px] font-black text-gray-900 leading-tight">What service do you need?</h2>
             </div>
 
             {/* Mobile-only search */}
-            <form onSubmit={handleSearchSubmit} className="mt-3 flex gap-2 lg:hidden">
-              <div className="flex flex-1 items-center rounded-2xl bg-gray-100 px-4 py-3 group focus-within:bg-white focus-within:ring-2 focus-within:ring-primary/20 focus-within:shadow-sm transition-all">
+            <form onSubmit={handleSearchSubmit} className="mt-2 flex gap-2 lg:hidden">
+              <div className="flex flex-1 items-center rounded-2xl bg-gray-100 px-4 py-2 group focus-within:bg-white focus-within:ring-2 focus-within:ring-primary/20 focus-within:shadow-sm transition-all">
                 <Search className="h-4 w-4 text-gray-400 flex-shrink-0 group-focus-within:text-primary transition-colors" />
                 <input
                   type="text"
@@ -374,14 +394,14 @@ export default function HomePage() {
               <button
                 type="button"
                 onClick={() => setIsFilterOpen(true)}
-                className="flex h-[46px] w-[46px] items-center justify-center rounded-2xl bg-primary text-white shadow-md shadow-primary/25 active:scale-95 transition-all"
+                className="flex h-[38px] w-[38px] items-center justify-center rounded-2xl bg-primary text-white shadow-md shadow-primary/25 active:scale-95 transition-all"
               >
                 <Settings2 className="h-4 w-4" />
               </button>
             </form>
 
             {/* Subcategory quick filters */}
-            <div className="mt-4 flex gap-2 overflow-x-auto pb-1 scrollbar-hide lg:flex-wrap lg:overflow-visible lg:pb-0">
+            <div className="mt-2 flex gap-2 overflow-x-auto pb-1 scrollbar-hide lg:flex-wrap lg:overflow-visible lg:pb-0">
               <button
                 onClick={() => setActiveCategory("all")}
                 className={`flex items-center gap-1.5 whitespace-nowrap rounded-full px-4 py-1.5 text-[11px] font-semibold transition-all ${
@@ -412,13 +432,18 @@ export default function HomePage() {
         </div>
 
         {/* ── HERO CARDS ── */}
-        <section className="mt-3 pl-4 w-full lg:mt-6 lg:pl-0">
+        <section className="mt-2 w-full lg:mt-6">
           <div className="max-w-7xl mx-auto lg:px-8">
-            <div className="flex gap-3 overflow-x-auto pb-3 scrollbar-hide snap-x snap-mandatory pr-4 lg:grid lg:grid-cols-3 lg:gap-5 lg:overflow-visible lg:pr-0 lg:pb-0">
+            <div
+              ref={carouselRef}
+              onScroll={handleCarouselScroll}
+              onScrollCapture={handleCarouselScrollEnd}
+              className="flex gap-3 overflow-x-auto pb-3 scrollbar-hide snap-x snap-mandatory px-[2.5%] scroll-px-[2.5%] lg:grid lg:grid-cols-3 lg:gap-5 lg:overflow-visible lg:px-0 lg:pb-0"
+            >
               {slides.map((slide) => (
                 <div
                   key={slide.id}
-                  className="relative h-[175px] lg:h-52 w-[95%] flex-shrink-0 lg:w-auto rounded-3xl snap-start overflow-hidden shadow-md shadow-primary/20 "
+                  className="relative h-[155px] lg:h-52 w-[95%] flex-shrink-0 lg:w-auto rounded-3xl snap-center overflow-hidden shadow-md shadow-primary/20"
                 >
                   <div
                     className="absolute inset-0 bg-cover bg-center"
@@ -431,21 +456,21 @@ export default function HomePage() {
                     <path d="M-40 150 Q80 90 180 130 Q280 170 380 100 Q430 70 470 110" stroke="white" strokeWidth="2" fill="none" strokeLinecap="round"/>
                     <path d="M-20 80 Q80 30 180 65 Q280 100 380 40 Q430 15 460 50" stroke="white" strokeWidth="1.5" fill="none" strokeLinecap="round"/>
                   </svg>
-                  <div className="relative z-10 w-[62%] h-full flex flex-col justify-between p-5">
+                  <div className="relative z-10 w-[62%] h-full flex flex-col justify-center p-4">
                     <div>
                       <span className="inline-block rounded-full bg-white/25 px-2.5 py-0.5 text-[9px] font-bold uppercase tracking-widest text-white">
                         {slide.badge}
                       </span>
-                      <h2 className="mt-2 text-[16px] font-black text-white leading-snug break-words">
+                      <h2 className="mt-1.5 text-[15px] font-black text-white leading-snug break-words">
                         {slide.title}
                       </h2>
-                      <p className="mt-1 text-[10px] font-medium text-white/80 leading-snug max-w-[150px]">
+                      <p className="mt-1 text-[9px] font-medium text-white/80 leading-snug max-w-[140px]">
                         {slide.subtitle}
                       </p>
                     </div>
                     <button
                       onClick={() => router.push("/search")}
-                      className="flex items-center gap-1.5 w-fit rounded-full bg-white pl-4 pr-1.5 py-1.5 text-[11px] font-bold text-black shadow-sm active:scale-95 transition-all"
+                      className="mt-3 flex items-center gap-1.5 w-fit rounded-full bg-white pl-4 pr-1.5 py-1.5 text-[11px] font-bold text-black shadow-sm active:scale-95 transition-all"
                     >
                       {slide.buttonText}
                       <span className="flex h-5 w-5 items-center justify-center rounded-full bg-black flex-shrink-0">
@@ -459,6 +484,22 @@ export default function HomePage() {
                     </div>
                   </div>
                 </div>
+              ))}
+            </div>
+
+            {/* Dot indicators — mobile only */}
+            <div className="flex items-center justify-center gap-2 mt-2 lg:hidden">
+              {slides.map((_, i) => (
+                <button
+                  key={i}
+                  onClick={() => scrollToSlide(i)}
+                  style={{ touchAction: 'manipulation', WebkitTapHighlightColor: 'transparent' }}
+                  className={`transition-all duration-300 rounded-full ${
+                    currentSlide === i
+                      ? 'w-5 h-2 bg-primary'
+                      : 'w-2 h-2 bg-gray-300'
+                  }`}
+                />
               ))}
             </div>
           </div>

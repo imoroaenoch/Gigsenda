@@ -4,11 +4,11 @@ export const dynamic = 'force-dynamic';
 
 import { useState, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
-import { getAllBookings, adminUpdateBookingStatus } from "@/lib/admin";
+import { getAllBookings, adminUpdateBookingStatus, adminDeleteBooking } from "@/lib/admin";
 import {
   Search, Calendar, Clock, MoreVertical, CheckCircle2,
   XCircle, User as UserIcon, ChevronRight, Download, X,
-  Briefcase, Phone, MapPin,
+  Briefcase, Phone, MapPin, Trash2,
 } from "lucide-react";
 import Image from "next/image";
 import toast from "react-hot-toast";
@@ -50,6 +50,8 @@ export default function AdminBookings() {
   const [activeMenuId, setActiveMenuId]   = useState<string | null>(null);
   const [menuPos, setMenuPos]             = useState({ top: 0, left: 0 });
   const [actionId, setActionId]           = useState<string | null>(null);
+  const [deleteTarget, setDeleteTarget]   = useState<any>(null);
+  const [isDeleting, setIsDeleting]       = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -91,6 +93,22 @@ export default function AdminBookings() {
       toast.error("Failed to update status");
     } finally {
       setActionId(null);
+    }
+  };
+
+  const handleDeleteBooking = async () => {
+    if (!deleteTarget) return;
+    setIsDeleting(true);
+    try {
+      await adminDeleteBooking(deleteTarget.id);
+      toast.success("Booking deleted");
+      setBookings(prev => prev.filter(b => b.id !== deleteTarget.id));
+      if (detailBooking?.id === deleteTarget.id) setDetailBooking(null);
+      setDeleteTarget(null);
+    } catch {
+      toast.error("Failed to delete booking");
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -265,6 +283,12 @@ export default function AdminBookings() {
                               className="flex w-full items-center gap-3 px-4 py-2.5 rounded-xl text-[11px] font-medium text-text-light hover:bg-gray-50 transition-all uppercase tracking-widest"
                             >
                               <Briefcase className="h-4 w-4" /> View Details
+                            </button>
+                            <button
+                              onClick={() => { setActiveMenuId(null); setDeleteTarget(booking); }}
+                              className="flex w-full items-center gap-3 px-4 py-2.5 rounded-xl text-[11px] font-medium text-red-600 hover:bg-red-50 transition-all uppercase tracking-widest"
+                            >
+                              <Trash2 className="h-4 w-4" /> Delete Booking
                             </button>
                           </div>,
                           document.body

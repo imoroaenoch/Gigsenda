@@ -26,10 +26,13 @@ import {
   Building,
   CreditCard,
   AlertCircle,
-  Loader2
+  Loader2,
+  Trash2,
+  ImagePlus,
+  X,
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
-import { getProvider, updateProvider, uploadProfilePhoto, getBookings } from "@/lib/firestore";
+import { getProvider, updateProvider, uploadProfilePhoto, getBookings, deleteAccount } from "@/lib/firestore";
 import { subscribeCategoriesWithSubs, CategoryWithSubs } from "@/lib/categories";
 import { logout } from "@/lib/auth";
 import { getNigerianBanks, verifyBankAccount, maskAccountNumber, NigerianBank } from "@/lib/paystack-banks";
@@ -49,6 +52,27 @@ export default function ProviderProfileEditPage() {
       router.push("/login");
     } catch {
       toast.error("Failed to logout");
+    }
+  };
+
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [isDeletingAccount, setIsDeletingAccount] = useState(false);
+
+  const handleDeleteAccount = async () => {
+    if (!user?.uid) return;
+    setIsDeletingAccount(true);
+    try {
+      await deleteAccount(user.uid);
+      router.push("/login");
+      toast.success("Account deleted successfully");
+    } catch (error: any) {
+      if (error?.code === "auth/requires-recent-login") {
+        toast.error("Please log out and log back in, then try again");
+      } else {
+        toast.error("Failed to delete account");
+      }
+      setIsDeletingAccount(false);
+      setShowDeleteConfirm(false);
     }
   };
   const [categories, setCategories] = useState<CategoryWithSubs[]>([]);
@@ -71,7 +95,11 @@ export default function ProviderProfileEditPage() {
     getNigerianBanks().then(setBanks).catch(console.error);
   }, []);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  
+  const portfolioInputRef = useRef<HTMLInputElement>(null);
+
+  const [portfolioPhotos, setPortfolioPhotos] = useState<string[]>([]);
+  const [isUploadingPortfolio, setIsUploadingPortfolio] = useState(false);
+
   const [isUpdating, setIsUpdating] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [newSkill, setNewSkill] = useState("");
@@ -136,6 +164,9 @@ export default function ProviderProfileEditPage() {
               accountNumber: providerData.bankDetails?.accountNumber || "",
               accountName: providerData.bankDetails?.accountName || "",
             }));
+            if (Array.isArray((providerData as any).portfolioPhotos)) {
+              setPortfolioPhotos((providerData as any).portfolioPhotos);
+            }
             
             // Initialize bank form data
             if (providerData.bankDetails) {
@@ -185,6 +216,49 @@ export default function ProviderProfileEditPage() {
       toast.error("Update failed");
     } finally {
       setIsUpdating(false);
+    }
+  };
+
+  const handlePortfolioUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    if (!files.length || !user?.uid) return;
+    if (portfolioPhotos.length + files.length > 5) {
+      toast.error("Maximum 5 portfolio photos allowed");
+      return;
+    }
+    setIsUploadingPortfolio(true);
+    try {
+      for (const file of files) {
+        const fd = new FormData();
+        fd.append("file", file);
+        fd.append("uid", user.uid);
+        const res = await fetch("/api/upload-portfolio", { method: "POST", body: fd });
+        if (!res.ok) { const err = await res.json(); throw new Error(err.error || "Upload failed"); }
+        const { downloadURL } = await res.json();
+        setPortfolioPhotos(prev => [...prev, downloadURL]);
+      }
+      toast.success("Photo(s) added to portfolio");
+    } catch (error: any) {
+      toast.error(error.message || "Upload failed");
+    } finally {
+      setIsUploadingPortfolio(false);
+      if (portfolioInputRef.current) portfolioInputRef.current.value = "";
+    }
+  };
+
+  const handleRemovePortfolioPhoto = async (url: string) => {
+    if (!user?.uid) return;
+    try {
+      const res = await fetch("/api/upload-portfolio", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ uid: user.uid, url }),
+      });
+      if (!res.ok) throw new Error("Failed to remove");
+      setPortfolioPhotos(prev => prev.filter(p => p !== url));
+      toast.success("Photo removed");
+    } catch {
+      toast.error("Failed to remove photo");
     }
   };
 
@@ -323,7 +397,7 @@ export default function ProviderProfileEditPage() {
   return (
     <main className="min-h-screen bg-[#FFFDF7] pb-24 lg:pb-12">
       {/* Header */}
-      <header className="sticky top-0 z-50 bg-white px-6 lg:px-8 pt-12 pb-5 lg:pt-6 lg:pb-5 shadow-sm border-b border-gray-100">
+      <header className="sticky top-0 z-50 bg-white px-6 lg:px-8 pt-5 pb-4 lg:pt-6 lg:pb-5 shadow-sm border-b border-gray-100">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <button onClick={() => router.back()} className="rounded-xl p-2 hover:bg-gray-100">
@@ -416,21 +490,21 @@ export default function ProviderProfileEditPage() {
                 <label className="text-[10px] font-black uppercase tracking-wider text-text-light">Full Name</label>
                 <div className="flex items-center rounded-xl bg-white border border-gray-100 px-4 py-3 shadow-sm">
                   <User className="h-4 w-4 text-gray-400" />
-                  <input type="text" value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} className="ml-3 w-full bg-transparent text-sm font-bold outline-none text-text" />
+                  <input type="text" value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} className="ml-3 w-full bg-transparent text-[13px] font-bold outline-none text-text" />
                 </div>
               </div>
               <div className="space-y-1.5">
                 <label className="text-[10px] font-black uppercase tracking-wider text-text-light">Phone Number</label>
                 <div className="flex items-center rounded-xl bg-white border border-gray-100 px-4 py-3 shadow-sm">
                   <Phone className="h-4 w-4 text-gray-400" />
-                  <input type="tel" value={formData.phone} onChange={(e) => setFormData({...formData, phone: e.target.value})} className="ml-3 w-full bg-transparent text-sm font-bold outline-none text-text" />
+                  <input type="tel" value={formData.phone} onChange={(e) => setFormData({...formData, phone: e.target.value})} className="ml-3 w-full bg-transparent text-[13px] font-bold outline-none text-text" />
                 </div>
               </div>
               <div className="space-y-1.5 lg:col-span-2">
                 <label className="text-[10px] font-black uppercase tracking-wider text-text-light">City / Area</label>
                 <div className="flex items-center rounded-xl bg-white border border-gray-100 px-4 py-3 shadow-sm">
                   <MapPin className="h-4 w-4 text-gray-400" />
-                  <input type="text" value={formData.city} onChange={(e) => setFormData({...formData, city: e.target.value})} className="ml-3 w-full bg-transparent text-sm font-bold outline-none text-text" />
+                  <input type="text" value={formData.city} onChange={(e) => setFormData({...formData, city: e.target.value})} className="ml-3 w-full bg-transparent text-[13px] font-bold outline-none text-text" />
                 </div>
               </div>
             </div>
@@ -443,7 +517,7 @@ export default function ProviderProfileEditPage() {
               <div className="space-y-1.5">
                 <label className="text-[10px] font-black uppercase tracking-wider text-text-light">Service Category</label>
                 <select value={formData.category} onChange={(e) => setFormData({...formData, category: e.target.value})}
-                  className="w-full rounded-xl bg-white border border-gray-100 px-4 py-3.5 text-sm font-bold outline-none text-text shadow-sm appearance-none">
+                  className="w-full rounded-xl bg-white border border-gray-100 px-4 py-3 text-[13px] font-bold outline-none text-text shadow-sm appearance-none">
                   {categories.map(cat => <option key={cat.id} value={cat.name}>{cat.name}</option>)}
                 </select>
               </div>
@@ -451,20 +525,20 @@ export default function ProviderProfileEditPage() {
                 <label className="text-[10px] font-black uppercase tracking-wider text-text-light">Business Title</label>
                 <div className="flex items-center rounded-xl bg-white border border-gray-100 px-4 py-3 shadow-sm">
                   <Zap className="h-4 w-4 text-gray-400" />
-                  <input type="text" value={formData.serviceTitle} onChange={(e) => setFormData({...formData, serviceTitle: e.target.value})} className="ml-3 w-full bg-transparent text-sm font-bold outline-none text-text" />
+                  <input type="text" value={formData.serviceTitle} onChange={(e) => setFormData({...formData, serviceTitle: e.target.value})} className="ml-3 w-full bg-transparent text-[13px] font-bold outline-none text-text" />
                 </div>
               </div>
               <div className="space-y-1.5">
                 <label className="text-[10px] font-black uppercase tracking-wider text-text-light">Experience (Years)</label>
                 <div className="flex items-center rounded-xl bg-white border border-gray-100 px-4 py-3 shadow-sm">
                   <Briefcase className="h-4 w-4 text-gray-400" />
-                  <input type="number" value={formData.experience} onChange={(e) => setFormData({...formData, experience: e.target.value})} className="ml-3 w-full bg-transparent text-sm font-bold outline-none text-text" />
+                  <input type="number" value={formData.experience} onChange={(e) => setFormData({...formData, experience: e.target.value})} className="ml-3 w-full bg-transparent text-[13px] font-bold outline-none text-text" />
                 </div>
               </div>
               <div className="space-y-1.5 lg:col-span-2">
                 <label className="text-[10px] font-black uppercase tracking-wider text-text-light">Bio / About</label>
                 <textarea value={formData.bio} onChange={(e) => setFormData({...formData, bio: e.target.value.slice(0, 300)})}
-                  rows={4} className="w-full rounded-xl bg-white border border-gray-100 px-4 py-3.5 text-sm font-medium outline-none text-text shadow-sm resize-none" />
+                  rows={4} className="w-full rounded-xl bg-white border border-gray-100 px-4 py-3 text-[13px] font-medium outline-none text-text shadow-sm resize-none" />
               </div>
             </div>
           </section>
@@ -472,6 +546,60 @@ export default function ProviderProfileEditPage() {
           {/* Section: Experience */}
           <section className="space-y-4">
             <h3 className="text-[10px] font-black uppercase tracking-wider text-text-light border-b border-gray-100 pb-2">Experience & Portfolio</h3>
+
+            {/* Portfolio Photos */}
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <label className="text-[10px] font-black uppercase tracking-wider text-text-light">Work Photos <span className="text-gray-400 normal-case font-bold">({portfolioPhotos.length}/5)</span></label>
+                {portfolioPhotos.length < 5 && (
+                  <button
+                    type="button"
+                    onClick={() => portfolioInputRef.current?.click()}
+                    disabled={isUploadingPortfolio}
+                    className="flex items-center gap-1 rounded-xl bg-primary/5 border border-primary/10 px-3 py-1.5 text-[11px] font-black text-primary active:scale-95 transition-all disabled:opacity-60"
+                  >
+                    {isUploadingPortfolio
+                      ? <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                      : <ImagePlus className="h-3.5 w-3.5" />}
+                    {isUploadingPortfolio ? "Uploading..." : "Add Photo"}
+                  </button>
+                )}
+                <input
+                  ref={portfolioInputRef}
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp"
+                  multiple
+                  className="hidden"
+                  onChange={handlePortfolioUpload}
+                />
+              </div>
+              {portfolioPhotos.length > 0 ? (
+                <div className="grid grid-cols-3 gap-2">
+                  {portfolioPhotos.map((url, i) => (
+                    <div key={i} className="relative aspect-square rounded-xl overflow-hidden border border-gray-100 bg-gray-50 group">
+                      <Image src={url} alt={`Work photo ${i + 1}`} fill className="object-cover" />
+                      <button
+                        type="button"
+                        onClick={() => handleRemovePortfolioPhoto(url)}
+                        className="absolute top-1 right-1 h-6 w-6 rounded-full bg-black/60 flex items-center justify-center text-white opacity-0 group-hover:opacity-100 transition-opacity active:opacity-100"
+                      >
+                        <X className="h-3.5 w-3.5" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => portfolioInputRef.current?.click()}
+                  disabled={isUploadingPortfolio}
+                  className="w-full flex flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-gray-200 bg-gray-50 py-8 text-gray-400 hover:border-primary/30 hover:bg-primary/5 hover:text-primary transition-all disabled:opacity-60"
+                >
+                  <ImagePlus className="h-8 w-8" />
+                  <span className="text-[11px] font-bold">Add up to 5 photos of your work</span>
+                </button>
+              )}
+            </div>
 
             {/* Skills */}
             <div className="space-y-2">
@@ -502,7 +630,7 @@ export default function ProviderProfileEditPage() {
                     }
                   }}
                   placeholder="Type a skill and press Enter"
-                  className="flex-1 rounded-xl bg-white border border-gray-100 px-4 py-2.5 text-sm font-bold outline-none text-text shadow-sm"
+                  className="flex-1 rounded-xl bg-white border border-gray-100 px-4 py-2 text-[13px] font-bold outline-none text-text shadow-sm"
                 />
                 <button type="button"
                   onClick={() => {
@@ -546,7 +674,7 @@ export default function ProviderProfileEditPage() {
                     }
                   }}
                   placeholder="e.g. Certified Electrician, BSc Nursing"
-                  className="flex-1 rounded-xl bg-white border border-gray-100 px-4 py-2.5 text-sm font-bold outline-none text-text shadow-sm"
+                  className="flex-1 rounded-xl bg-white border border-gray-100 px-4 py-2 text-[13px] font-bold outline-none text-text shadow-sm"
                 />
                 <button type="button"
                   onClick={() => {
@@ -586,7 +714,7 @@ export default function ProviderProfileEditPage() {
                     }
                   }}
                   placeholder="e.g. Installed electrical system for 20-unit building"
-                  className="flex-1 rounded-xl bg-white border border-gray-100 px-4 py-2.5 text-sm font-bold outline-none text-text shadow-sm"
+                  className="flex-1 rounded-xl bg-white border border-gray-100 px-4 py-2 text-[13px] font-bold outline-none text-text shadow-sm"
                 />
                 <button type="button"
                   onClick={() => {
@@ -619,7 +747,7 @@ export default function ProviderProfileEditPage() {
                       const standard = formData.standardPrice || Math.round(Number(base) * 1.5).toString();
                       setFormData({...formData, basePrice: base, standardPrice: standard});
                     }}
-                    className="w-full bg-transparent text-sm font-bold outline-none text-text"
+                    className="w-full bg-transparent text-[13px] font-bold outline-none text-text"
                   />
                 </div>
               </div>
@@ -632,7 +760,7 @@ export default function ProviderProfileEditPage() {
                     value={formData.standardPrice}
                     onChange={(e) => setFormData({...formData, standardPrice: e.target.value})}
                     placeholder={Math.round(Number(formData.basePrice) * 1.5).toString()}
-                    className="w-full bg-transparent text-sm font-bold outline-none text-text"
+                    className="w-full bg-transparent text-[13px] font-bold outline-none text-text"
                   />
                 </div>
               </div>
@@ -645,7 +773,7 @@ export default function ProviderProfileEditPage() {
                     value={formData.premiumPrice}
                     onChange={(e) => setFormData({...formData, premiumPrice: e.target.value})}
                     placeholder={Math.round(Number(formData.basePrice) * 2).toString()}
-                    className="w-full bg-transparent text-sm font-bold outline-none text-text"
+                    className="w-full bg-transparent text-[13px] font-bold outline-none text-text"
                   />
                 </div>
               </div>
@@ -678,7 +806,7 @@ export default function ProviderProfileEditPage() {
                   type="time" 
                   value={formData.startTime}
                   onChange={(e) => setFormData({...formData, startTime: e.target.value})}
-                  className="w-full rounded-xl bg-white border border-gray-100 px-4 py-3 text-sm font-bold outline-none text-text shadow-sm"
+                  className="w-full rounded-xl bg-white border border-gray-100 px-4 py-3 text-[13px] font-bold outline-none text-text shadow-sm"
                 />
               </div>
               <div className="space-y-1.5">
@@ -687,7 +815,7 @@ export default function ProviderProfileEditPage() {
                   type="time" 
                   value={formData.endTime}
                   onChange={(e) => setFormData({...formData, endTime: e.target.value})}
-                  className="w-full rounded-xl bg-white border border-gray-100 px-4 py-3 text-sm font-bold outline-none text-text shadow-sm"
+                  className="w-full rounded-xl bg-white border border-gray-100 px-4 py-3 text-[13px] font-bold outline-none text-text shadow-sm"
                 />
               </div>
             </div>
@@ -889,10 +1017,61 @@ export default function ProviderProfileEditPage() {
             <LogOut className="h-5 w-5" />
             Logout Account
           </button>
+
+          {/* Danger Zone */}
+          <div className="rounded-2xl border-2 border-red-100 bg-red-50/50 p-5">
+            <div className="flex items-center gap-2 mb-3">
+              <Trash2 className="h-4 w-4 text-red-500" />
+              <h3 className="text-[13px] font-black uppercase tracking-widest text-red-500">Danger Zone</h3>
+            </div>
+            <p className="text-[12px] font-medium text-red-400 leading-relaxed mb-4">
+              Once you delete your account, there is <span className="font-black text-red-500">no going back</span>. Your provider profile, all bookings, earnings history, and account data will be permanently removed. Please make absolutely sure before proceeding.
+            </p>
+            <button
+              type="button"
+              onClick={() => setShowDeleteConfirm(true)}
+              className="flex w-full items-center justify-center gap-2 rounded-xl border-2 border-red-300 bg-white py-3.5 text-sm font-black text-red-500 hover:bg-red-50 transition-all active:scale-95"
+            >
+              <Trash2 className="h-4 w-4" />
+              Delete My Account
+            </button>
+          </div>
         </form>
         </div>{/* end RIGHT COLUMN */}
 
       </div>{/* end two-column wrapper */}
+
+      {/* Delete Account Confirmation Modal */}
+      {showDeleteConfirm && (
+        <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center">
+          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => !isDeletingAccount && setShowDeleteConfirm(false)} />
+          <div className="relative w-full sm:max-w-sm mx-4 sm:mx-auto bg-white rounded-t-3xl sm:rounded-3xl p-6 shadow-2xl">
+            <div className="flex h-14 w-14 items-center justify-center rounded-full bg-red-50 mx-auto mb-4">
+              <Trash2 className="h-7 w-7 text-red-500" />
+            </div>
+            <h2 className="text-[18px] font-black text-gray-900 text-center">Delete Account?</h2>
+            <p className="mt-2 text-[13px] font-medium text-gray-400 text-center leading-relaxed">
+              This will permanently delete your provider account, profile, and all associated data. This action <span className="font-black text-red-500">cannot be undone</span>.
+            </p>
+            <div className="mt-6 flex flex-col gap-3">
+              <button
+                onClick={handleDeleteAccount}
+                disabled={isDeletingAccount}
+                className="w-full rounded-2xl bg-red-500 py-4 text-sm font-black text-white shadow-lg shadow-red-500/20 active:scale-95 transition-all disabled:opacity-60"
+              >
+                {isDeletingAccount ? "Deleting..." : "Yes, Delete My Account"}
+              </button>
+              <button
+                onClick={() => setShowDeleteConfirm(false)}
+                disabled={isDeletingAccount}
+                className="w-full rounded-2xl bg-gray-100 py-4 text-sm font-black text-gray-600 active:scale-95 transition-all disabled:opacity-60"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </main>
   );
 }

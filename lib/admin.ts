@@ -395,6 +395,16 @@ export const addSubcategory = async (name: string, categoryId: string, slug?: st
   }
 };
 
+export const updateCategory = async (id: string, name: string, icon: string, slug: string, fallbackPrice?: number | null) => {
+  const data: Record<string, any> = { name, icon, slug, updatedAt: serverTimestamp() };
+  if (fallbackPrice !== undefined) data.fallbackPrice = fallbackPrice;
+  await updateDoc(doc(db, "categories", id), data);
+};
+
+export const updateSubcategory = async (id: string, name: string, slug: string) => {
+  await updateDoc(doc(db, "subcategories", id), { name, slug, updatedAt: serverTimestamp() });
+};
+
 export const deleteSubcategory = async (id: string) => {
   try {
     await deleteDoc(doc(db, "subcategories", id));
@@ -403,4 +413,18 @@ export const deleteSubcategory = async (id: string) => {
     console.error("Error deleting subcategory:", error);
     throw error;
   }
+};
+
+// --- Admin: Delete user account (Firestore only — admin cannot delete Auth users server-side without Admin SDK) ---
+export const adminDeleteAccount = async (uid: string) => {
+  // Delete user doc
+  await deleteDoc(doc(db, "users", uid));
+  // Delete provider doc if exists
+  const provSnap = await getDoc(doc(db, "providers", uid));
+  if (provSnap.exists()) await deleteDoc(doc(db, "providers", uid));
+};
+
+// --- Admin: Delete a booking ---
+export const adminDeleteBooking = async (bookingId: string) => {
+  await deleteDoc(doc(db, "bookings", bookingId));
 };

@@ -104,6 +104,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                   <Link
                     key={item.href}
                     href={item.href}
+                    onClick={() => setIsSidebarOpen(false)}
                     className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all ${
                       isActive 
                         ? "bg-primary text-white shadow-lg shadow-primary/20" 
@@ -129,6 +130,14 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             </div>
           </div>
         </aside>
+
+        {/* Mobile backdrop — closes sidebar when tapped outside */}
+        {isSidebarOpen && (
+          <div
+            className="fixed inset-0 z-40 bg-black/40 lg:hidden"
+            onClick={() => setIsSidebarOpen(false)}
+          />
+        )}
 
         {/* Main Content */}
         <div className="flex-1 flex flex-col min-w-0 overflow-hidden">

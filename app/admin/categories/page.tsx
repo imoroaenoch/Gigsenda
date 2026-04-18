@@ -3,7 +3,7 @@
 export const dynamic = 'force-dynamic';
 
 import { useState, useEffect } from "react";
-import { addCategory, deleteCategory, addSubcategory, deleteSubcategory, updateCategoryFallbackPrice } from "@/lib/admin";
+import { addCategory, deleteCategory, addSubcategory, deleteSubcategory, updateCategoryFallbackPrice, updateCategory, updateSubcategory } from "@/lib/admin";
 import { subscribeCategoriesWithSubs, CategoryWithSubs } from "@/lib/categories";
 import {
   Plus,
@@ -19,6 +19,7 @@ import {
   ChevronDown,
   ChevronRight,
   Tag,
+  Pencil,
 } from "lucide-react";
 import toast from "react-hot-toast";
 
@@ -51,6 +52,22 @@ export default function AdminCategories() {
   const [subName, setSubName] = useState("");
   const [subSlug, setSubSlug] = useState("");
   const [subSaving, setSubSaving] = useState(false);
+
+  // Modal: edit category
+  const [editCatModalOpen, setEditCatModalOpen] = useState(false);
+  const [editCatId, setEditCatId] = useState("");
+  const [editCatName, setEditCatName] = useState("");
+  const [editCatSlug, setEditCatSlug] = useState("");
+  const [editCatIcon, setEditCatIcon] = useState("Zap");
+  const [editCatFallbackPrice, setEditCatFallbackPrice] = useState("");
+  const [editCatSaving, setEditCatSaving] = useState(false);
+
+  // Modal: edit subcategory
+  const [editSubModalOpen, setEditSubModalOpen] = useState(false);
+  const [editSubId, setEditSubId] = useState("");
+  const [editSubName, setEditSubName] = useState("");
+  const [editSubSlug, setEditSubSlug] = useState("");
+  const [editSubSaving, setEditSubSaving] = useState(false);
 
   useEffect(() => {
     const unsub = subscribeCategoriesWithSubs((data) => {
@@ -92,6 +109,62 @@ export default function AdminCategories() {
       toast.error("Failed to create category");
     } finally {
       setCatSaving(false);
+    }
+  };
+
+  const openEditCatModal = (cat: CategoryWithSubs) => {
+    setEditCatId(cat.id);
+    setEditCatName(cat.name);
+    setEditCatSlug(cat.slug || autoSlug(cat.name));
+    setEditCatIcon(cat.icon || "Zap");
+    setEditCatFallbackPrice(cat.fallbackPrice ? String(cat.fallbackPrice) : "");
+    setEditCatModalOpen(true);
+  };
+
+  const handleEditCategory = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editCatName.trim()) { toast.error("Enter a category name"); return; }
+    setEditCatSaving(true);
+    try {
+      await updateCategory(
+        editCatId,
+        editCatName.trim(),
+        editCatIcon,
+        editCatSlug.trim() || autoSlug(editCatName),
+        editCatFallbackPrice ? Number(editCatFallbackPrice) : null,
+      );
+      toast.success("Category updated");
+      setEditCatModalOpen(false);
+    } catch {
+      toast.error("Failed to update category");
+    } finally {
+      setEditCatSaving(false);
+    }
+  };
+
+  const openEditSubModal = (sub: { id: string; name: string; slug?: string }) => {
+    setEditSubId(sub.id);
+    setEditSubName(sub.name);
+    setEditSubSlug(sub.slug || autoSlug(sub.name));
+    setEditSubModalOpen(true);
+  };
+
+  const handleEditSubcategory = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editSubName.trim()) { toast.error("Enter a subcategory name"); return; }
+    setEditSubSaving(true);
+    try {
+      await updateSubcategory(
+        editSubId,
+        editSubName.trim(),
+        editSubSlug.trim() || autoSlug(editSubName),
+      );
+      toast.success("Subcategory updated");
+      setEditSubModalOpen(false);
+    } catch {
+      toast.error("Failed to update subcategory");
+    } finally {
+      setEditSubSaving(false);
     }
   };
 
@@ -209,6 +282,12 @@ export default function AdminCategories() {
                       Sub
                     </button>
                     <button
+                      onClick={() => openEditCatModal(cat)}
+                      className="h-8 w-8 flex items-center justify-center rounded-xl bg-blue-50 border border-blue-100 text-blue-500 hover:bg-blue-500 hover:text-white transition-all active:scale-90"
+                    >
+                      <Pencil className="h-3.5 w-3.5" />
+                    </button>
+                    <button
                       onClick={() => handleDeleteCategory(cat.id, cat.name)}
                       className="h-8 w-8 flex items-center justify-center rounded-xl bg-red-50 border border-red-100 text-red-500 hover:bg-red-500 hover:text-white transition-all active:scale-90"
                     >
@@ -241,12 +320,20 @@ export default function AdminCategories() {
                             <p className="text-xs font-black text-text truncate">{sub.name}</p>
                             <p className="text-[10px] font-bold text-text-light">/{sub.slug}</p>
                           </div>
-                          <button
-                            onClick={() => handleDeleteSubcategory(sub.id, sub.name)}
-                            className="h-7 w-7 flex items-center justify-center rounded-lg bg-red-50 border border-red-100 text-red-400 hover:bg-red-500 hover:text-white transition-all active:scale-90"
-                          >
-                            <Trash2 className="h-3 w-3" />
-                          </button>
+                          <div className="flex items-center gap-1.5 shrink-0">
+                            <button
+                              onClick={() => openEditSubModal(sub)}
+                              className="h-7 w-7 flex items-center justify-center rounded-lg bg-blue-50 border border-blue-100 text-blue-400 hover:bg-blue-500 hover:text-white transition-all active:scale-90"
+                            >
+                              <Pencil className="h-3 w-3" />
+                            </button>
+                            <button
+                              onClick={() => handleDeleteSubcategory(sub.id, sub.name)}
+                              className="h-7 w-7 flex items-center justify-center rounded-lg bg-red-50 border border-red-100 text-red-400 hover:bg-red-500 hover:text-white transition-all active:scale-90"
+                            >
+                              <Trash2 className="h-3 w-3" />
+                            </button>
+                          </div>
                         </div>
                       ))
                     )}
@@ -337,6 +424,144 @@ export default function AdminCategories() {
                 </button>
                 <button type="submit" disabled={catSaving} className="flex-1 rounded-2xl bg-primary py-4 text-[11px] font-black text-white shadow-xl shadow-primary/20 transition-all active:scale-95 uppercase tracking-widest disabled:opacity-60">
                   {catSaving ? "Creating..." : "Create Category"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Category Modal */}
+      {editCatModalOpen && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-6">
+          <div className="w-full max-w-md animate-in fade-in zoom-in duration-300 rounded-[2.5rem] bg-white p-10 shadow-2xl border border-gray-100">
+            <div className="flex items-center justify-between mb-8">
+              <div className="flex items-center gap-4">
+                <div className="h-12 w-12 rounded-2xl bg-blue-50 flex items-center justify-center text-blue-500 border border-blue-100">
+                  <Pencil className="h-6 w-6" />
+                </div>
+                <h2 className="text-xl font-black text-text">Edit Category</h2>
+              </div>
+              <button onClick={() => setEditCatModalOpen(false)} className="h-10 w-10 flex items-center justify-center rounded-xl bg-gray-50 text-text-light hover:bg-gray-100 transition-all">
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleEditCategory} className="space-y-6">
+              <div className="space-y-2">
+                <label className="text-[10px] font-black uppercase tracking-widest text-text-light pl-1">Category Name</label>
+                <input
+                  type="text"
+                  value={editCatName}
+                  onChange={(e) => { setEditCatName(e.target.value); setEditCatSlug(autoSlug(e.target.value)); }}
+                  placeholder="e.g. Home Services"
+                  className="w-full rounded-2xl bg-gray-50 border border-gray-100 px-5 py-4 text-sm font-bold text-text outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary/30 transition-all"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-[10px] font-black uppercase tracking-widest text-text-light pl-1">Slug</label>
+                <input
+                  type="text"
+                  value={editCatSlug}
+                  onChange={(e) => setEditCatSlug(e.target.value)}
+                  placeholder="home-services"
+                  className="w-full rounded-2xl bg-gray-50 border border-gray-100 px-5 py-4 text-sm font-bold text-text-light outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary/30 transition-all"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-[10px] font-black uppercase tracking-widest text-text-light pl-1">Fallback Price (₦) — Optional</label>
+                <div className="flex items-center rounded-2xl bg-gray-50 border border-gray-100 px-5 py-4">
+                  <span className="font-bold text-gray-400 mr-1">₦</span>
+                  <input
+                    type="number"
+                    value={editCatFallbackPrice}
+                    onChange={(e) => setEditCatFallbackPrice(e.target.value)}
+                    placeholder="e.g. 5000"
+                    className="w-full bg-transparent text-sm font-bold text-text outline-none"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-3">
+                <label className="text-[10px] font-black uppercase tracking-widest text-text-light pl-1">Icon</label>
+                <div className="grid grid-cols-6 gap-2">
+                  {ICONS.map((item) => (
+                    <button
+                      key={item.name}
+                      type="button"
+                      onClick={() => setEditCatIcon(item.name)}
+                      className={`flex flex-col items-center gap-1 p-3 rounded-xl border transition-all ${
+                        editCatIcon === item.name
+                          ? "bg-primary/5 border-primary text-primary"
+                          : "bg-gray-50 border-gray-100 text-gray-400 hover:bg-gray-100"
+                      }`}
+                    >
+                      <item.icon className="h-5 w-5" />
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="flex gap-4 pt-2">
+                <button type="button" onClick={() => setEditCatModalOpen(false)} className="flex-1 rounded-2xl bg-gray-50 py-4 text-[11px] font-black text-text-light hover:bg-gray-100 transition-all active:scale-95 uppercase tracking-widest">
+                  Cancel
+                </button>
+                <button type="submit" disabled={editCatSaving} className="flex-1 rounded-2xl bg-blue-500 py-4 text-[11px] font-black text-white shadow-xl shadow-blue-500/20 transition-all active:scale-95 uppercase tracking-widest disabled:opacity-60">
+                  {editCatSaving ? "Saving..." : "Save Changes"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Subcategory Modal */}
+      {editSubModalOpen && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-6">
+          <div className="w-full max-w-md animate-in fade-in zoom-in duration-300 rounded-[2.5rem] bg-white p-10 shadow-2xl border border-gray-100">
+            <div className="flex items-center justify-between mb-8">
+              <div className="flex items-center gap-4">
+                <div className="h-12 w-12 rounded-2xl bg-blue-50 flex items-center justify-center text-blue-500 border border-blue-100">
+                  <Pencil className="h-6 w-6" />
+                </div>
+                <h2 className="text-xl font-black text-text">Edit Subcategory</h2>
+              </div>
+              <button onClick={() => setEditSubModalOpen(false)} className="h-10 w-10 flex items-center justify-center rounded-xl bg-gray-50 text-text-light hover:bg-gray-100 transition-all">
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleEditSubcategory} className="space-y-6">
+              <div className="space-y-2">
+                <label className="text-[10px] font-black uppercase tracking-widest text-text-light pl-1">Subcategory Name</label>
+                <input
+                  type="text"
+                  value={editSubName}
+                  onChange={(e) => { setEditSubName(e.target.value); setEditSubSlug(autoSlug(e.target.value)); }}
+                  placeholder="e.g. Plumber"
+                  className="w-full rounded-2xl bg-gray-50 border border-gray-100 px-5 py-4 text-sm font-bold text-text outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary/30 transition-all"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-[10px] font-black uppercase tracking-widest text-text-light pl-1">Slug</label>
+                <input
+                  type="text"
+                  value={editSubSlug}
+                  onChange={(e) => setEditSubSlug(e.target.value)}
+                  placeholder="plumber"
+                  className="w-full rounded-2xl bg-gray-50 border border-gray-100 px-5 py-4 text-sm font-bold text-text-light outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary/30 transition-all"
+                />
+              </div>
+
+              <div className="flex gap-4 pt-2">
+                <button type="button" onClick={() => setEditSubModalOpen(false)} className="flex-1 rounded-2xl bg-gray-50 py-4 text-[11px] font-black text-text-light hover:bg-gray-100 transition-all active:scale-95 uppercase tracking-widest">
+                  Cancel
+                </button>
+                <button type="submit" disabled={editSubSaving} className="flex-1 rounded-2xl bg-blue-500 py-4 text-[11px] font-black text-white shadow-xl shadow-blue-500/20 transition-all active:scale-95 uppercase tracking-widest disabled:opacity-60">
+                  {editSubSaving ? "Saving..." : "Save Changes"}
                 </button>
               </div>
             </form>

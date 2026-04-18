@@ -5,10 +5,10 @@ export const dynamic = 'force-dynamic';
 import { useState, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
-import { getAllCustomers, banCustomer, unbanCustomer, flagCustomer } from "@/lib/admin";
+import { getAllCustomers, banCustomer, unbanCustomer, flagCustomer, adminDeleteAccount } from "@/lib/admin";
 import {
   Search, User as UserIcon, Mail, MapPin, MoreVertical,
-  Flag, Ban, CheckCircle2, X, AlertCircle, ShieldOff,
+  Flag, Ban, CheckCircle2, X, AlertCircle, ShieldOff, Trash2,
 } from "lucide-react";
 import Image from "next/image";
 import toast from "react-hot-toast";
@@ -26,6 +26,10 @@ export default function AdminCustomers() {
   // Flag modal state
   const [flagTarget, setFlagTarget]     = useState<any>(null);
   const [flagReason, setFlagReason]     = useState("");
+
+  // Delete modal state
+  const [deleteTarget, setDeleteTarget] = useState<any>(null);
+  const [isDeleting, setIsDeleting]     = useState(false);
 
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -71,6 +75,21 @@ export default function AdminCustomers() {
       toast.error("Action failed");
     } finally {
       setActionId(null);
+    }
+  };
+
+  const handleDeleteAccount = async () => {
+    if (!deleteTarget) return;
+    setIsDeleting(true);
+    try {
+      await adminDeleteAccount(deleteTarget.id);
+      toast.success(`${deleteTarget.name}'s account has been deleted`);
+      setCustomers(prev => prev.filter(c => c.id !== deleteTarget.id));
+      setDeleteTarget(null);
+    } catch {
+      toast.error("Failed to delete account");
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -269,6 +288,12 @@ export default function AdminCustomers() {
                                 : <><ShieldOff className="h-4 w-4" /> Suspend User</>
                               }
                             </button>
+                            <button
+                              onClick={() => { setActiveMenuId(null); setDeleteTarget(customer); }}
+                              className="flex w-full items-center gap-3 px-4 py-2.5 rounded-xl text-[11px] font-black text-red-600 hover:bg-red-50 transition-all uppercase tracking-widest"
+                            >
+                              <Trash2 className="h-4 w-4" /> Delete Account
+                            </button>
                           </div>,
                           document.body
                         )}
@@ -281,6 +306,42 @@ export default function AdminCustomers() {
           </table>
         </div>
       </div>
+
+      {/* ── Delete Account Modal ─────────────────────────────────────── */}
+      {deleteTarget && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-6">
+          <div className="w-full max-w-md animate-in fade-in zoom-in duration-300 rounded-[2.5rem] bg-white p-10 shadow-2xl border border-gray-100">
+            <div className="flex items-center gap-4 mb-6">
+              <div className="h-12 w-12 rounded-2xl bg-red-50 flex items-center justify-center text-red-500">
+                <Trash2 className="h-6 w-6" />
+              </div>
+              <div>
+                <h2 className="text-lg font-black text-text">Delete Account</h2>
+                <p className="text-[11px] font-bold text-text-light">{deleteTarget.name}</p>
+              </div>
+            </div>
+            <p className="text-sm font-bold text-text-light mb-6 leading-relaxed">
+              This will permanently delete <span className="font-black text-text">{deleteTarget.name}</span>'s Firestore data. This action <span className="font-black text-red-500">cannot be undone</span>.
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setDeleteTarget(null)}
+                disabled={isDeleting}
+                className="flex-1 rounded-2xl bg-gray-50 py-4 text-[11px] font-black text-text-light hover:bg-gray-100 transition-all active:scale-95 uppercase tracking-widest disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleDeleteAccount}
+                disabled={isDeleting}
+                className="flex-1 rounded-2xl bg-red-500 py-4 text-[11px] font-black text-white shadow-lg shadow-red-500/20 hover:bg-red-600 transition-all active:scale-95 disabled:opacity-60 uppercase tracking-widest"
+              >
+                {isDeleting ? "Deleting..." : "Delete Account"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ── Flag Modal ──────────────────────────────────────────────────── */}
       {flagTarget && (

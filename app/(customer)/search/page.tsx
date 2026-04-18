@@ -2,7 +2,7 @@
 
 export const dynamic = 'force-dynamic';
 
-import { useState, Suspense } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, Search as SearchIcon, SlidersHorizontal, Star, X } from "lucide-react";
 import { useSearch } from "@/hooks/useSearch";
@@ -10,6 +10,7 @@ import ProviderCard from "@/components/search/ProviderCard";
 import FilterBottomSheet from "@/components/search/FilterBottomSheet";
 import AuthGuard from "@/components/auth/AuthGuard";
 import BottomNav from "@/components/common/BottomNav";
+import { subscribeActiveCategories, CategoryWithSubs } from "@/lib/categories";
 
 function SearchContent() {
   const router = useRouter();
@@ -23,9 +24,14 @@ function SearchContent() {
   } = useSearch();
 
   const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const [categories, setCategories] = useState<CategoryWithSubs[]>([]);
+
+  useEffect(() => {
+    const unsub = subscribeActiveCategories((data) => setCategories(data));
+    return () => unsub();
+  }, []);
 
   const RATINGS = [4, 3, 2];
-  const CATEGORIES = ["All", "Plumber", "Electrician", "Cleaner", "Tutor", "Photographer", "Barber", "Carpenter"];
   const hasActiveFilters = Object.values(filters).some(v => v !== undefined && v !== "All" && (Array.isArray(v) ? v.length > 0 : v !== 0));
 
   return (
@@ -87,7 +93,7 @@ function SearchContent() {
           <div className="mb-6">
             <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-3">Category</p>
             <div className="space-y-1">
-              {CATEGORIES.map(cat => (
+              {["All", ...categories.map(c => c.name)].map(cat => (
                 <button key={cat} onClick={() => updateFilters({ ...filters, category: cat })}
                   className={`w-full text-left px-3 py-2 rounded-xl text-[13px] font-semibold transition-all ${
                     (filters.category || "All") === cat

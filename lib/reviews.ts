@@ -79,16 +79,44 @@ export const addReview = async (reviewData: Omit<Review, "id" | "createdAt">) =>
 };
 
 /**
- * Gets all reviews for a specific provider
+ * Gets all reviews for a specific provider.
+ * Enriches each review with the customer's current photoURL from the users
+ * collection so profile images always display, even if the photo wasn't
+ * stored at review-write time or has since changed.
  */
 export const getProviderReviews = async (providerId: string) => {
   try {
     const reviewsRef = collection(db, "reviews");
     const q = query(reviewsRef, where("providerId", "==", providerId));
     const querySnapshot = await getDocs(q);
-    return querySnapshot.docs
+    const reviews = querySnapshot.docs
       .map(doc => ({ id: doc.id, ...doc.data() }) as Review)
       .sort((a: any, b: any) => (b.createdAt?.toMillis?.() || 0) - (a.createdAt?.toMillis?.() || 0));
+
+    // Collect unique customer IDs that are missing a photo
+    const missingPhotoIds = Array.from(new Set(
+      reviews.filter(r => !r.customerPhoto).map(r => r.customerId)
+    ));
+
+    if (missingPhotoIds.length > 0) {
+      // Fetch user docs in parallel
+      const userDocs = await Promise.all(
+        missingPhotoIds.map(uid => getDoc(doc(db, "users", uid)))
+      );
+      const photoMap: Record<string, string> = {};
+      userDocs.forEach(snap => {
+        if (snap.exists()) {
+          const data = snap.data();
+          if (data.photoURL) photoMap[snap.id] = data.photoURL;
+        }
+      });
+      // Merge photos back into reviews
+      return reviews.map(r =>
+        r.customerPhoto ? r : { ...r, customerPhoto: photoMap[r.customerId] }
+      );
+    }
+
+    return reviews;
   } catch (error) {
     console.error("Error getting provider reviews:", error);
     throw error;

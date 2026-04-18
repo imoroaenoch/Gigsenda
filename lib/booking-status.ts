@@ -27,15 +27,15 @@ export const CUSTOMER_STATUS_LABELS: Record<string, string> = {
 };
 
 export const PROVIDER_STATUS_LABELS: Record<string, string> = {
-  pending:     "🟠 New Request",
-  accepted:    "🟡 Awaiting Payment",
-  paid:        "🟢 Ready to Start",
-  in_progress: "🔵 In Progress",
-  completed:   "✅ Completed",
-  rejected:    "❌ Declined",
-  cancelled:   "⚫ Cancelled",
-  disputed:    "⚠️ Under Review",
-  refunded:    "↩️ Refunded",
+  pending:     "New Request",
+  accepted:    "Awaiting Payment",
+  paid:        "Ready to Start",
+  in_progress: "In Progress",
+  completed:   "Completed",
+  rejected:    "Declined",
+  cancelled:   "Cancelled",
+  disputed:    "Under Review",
+  refunded:    "Refunded",
 };
 
 // Status banner messages — shown on the booking detail page

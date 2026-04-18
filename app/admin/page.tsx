@@ -3,7 +3,7 @@
 export const dynamic = 'force-dynamic';
 
 import { useState, useEffect } from "react";
-import { getAdminStats, AdminStats, getAllBookings } from "@/lib/admin";
+import { getAdminStats, AdminStats, getAllBookings, getAllProviders } from "@/lib/admin";
 import { 
   Users, 
   Briefcase, 
@@ -29,18 +29,61 @@ import ProvidersChart from "@/components/admin/charts/ProvidersChart";
 export default function AdminDashboard() {
   const [stats, setStats] = useState<AdminStats | null>(null);
   const [recentBookings, setRecentBookings] = useState<any[]>([]);
+  const [activityFeed, setActivityFeed] = useState<{ text: string; time: string; type: string }[]>([]);
   const [loading, setLoading] = useState(true);
   const [dateRange, setDateRange] = useState(30); // 7, 30, or 90 days
 
   useEffect(() => {
     async function fetchData() {
       try {
-        const [statsData, bookingsData] = await Promise.all([
+        const [statsData, bookingsData, providersData] = await Promise.all([
           getAdminStats(),
-          getAllBookings()
+          getAllBookings(),
+          getAllProviders(),
         ]);
         setStats(statsData);
         setRecentBookings(bookingsData.slice(0, 5));
+
+        // Build real activity feed from actual data
+        const now = Date.now();
+        const timeAgo = (ts: any): string => {
+          const d: Date = ts?.toDate ? ts.toDate() : ts instanceof Date ? ts : new Date(ts);
+          const diff = Math.floor((now - d.getTime()) / 1000);
+          if (diff < 60) return `${diff}s ago`;
+          if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
+          if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
+          return `${Math.floor(diff / 86400)}d ago`;
+        };
+
+        const events: { text: string; time: string; type: string; ts: number }[] = [];
+
+        // Recent bookings → activity events
+        bookingsData.slice(0, 20).forEach((b: any) => {
+          const ts: Date = b.createdAt?.toDate ? b.createdAt.toDate() : b.createdAt instanceof Date ? b.createdAt : new Date(b.createdAt ?? 0);
+          if (b.status === "completed") {
+            events.push({ text: `Booking by ${b.customerName || "a customer"} with ${b.providerName || "a provider"} completed`, time: timeAgo(ts), type: "booking", ts: ts.getTime() });
+          } else if (b.status === "pending") {
+            events.push({ text: `New booking request from ${b.customerName || "a customer"} for ${b.category || b.serviceTitle || "a service"}`, time: timeAgo(ts), type: "booking", ts: ts.getTime() });
+          } else if (b.status === "paid") {
+            events.push({ text: `Payment confirmed for booking by ${b.customerName || "a customer"} — ₦${(b.price || 0).toLocaleString()}`, time: timeAgo(ts), type: "payment", ts: ts.getTime() });
+          } else if (b.status === "cancelled" || b.status === "rejected") {
+            events.push({ text: `Booking by ${b.customerName || "a customer"} was ${b.status}`, time: timeAgo(ts), type: "cancelled", ts: ts.getTime() });
+          }
+        });
+
+        // Recent providers → activity events
+        providersData.slice(0, 10).forEach((p: any) => {
+          const ts: Date = p.createdAt?.toDate ? p.createdAt.toDate() : p.createdAt instanceof Date ? p.createdAt : new Date(p.createdAt ?? 0);
+          if (!p.isApproved && p.status !== "rejected") {
+            events.push({ text: `Provider "${p.name || p.serviceTitle || "Unknown"}" applied and is awaiting approval`, time: timeAgo(ts), type: "provider", ts: ts.getTime() });
+          } else if (p.isApproved) {
+            events.push({ text: `Provider "${p.name || p.serviceTitle || "Unknown"}" was approved and is now active`, time: timeAgo(ts), type: "provider", ts: ts.getTime() });
+          }
+        });
+
+        // Sort by most recent and take top 6
+        events.sort((a, b) => b.ts - a.ts);
+        setActivityFeed(events.slice(0, 6).map(({ text, time, type }) => ({ text, time, type })));
       } catch (error) {
         console.error("Error fetching dashboard data:", error);
       } finally {
@@ -196,24 +239,20 @@ export default function AdminDashboard() {
         {/* Quick Actions / Activity Feed */}
         <div className="bg-white rounded-[2.5rem] p-8 border border-gray-100 shadow-sm flex flex-col h-full">
           <h2 className="text-lg font-medium text-text mb-8">System Activity</h2>
-          <div className="space-y-8 relative before:absolute before:left-2.5 before:top-2 before:bottom-2 before:w-0.5 before:bg-gray-50">
-            {[
-              { text: "New provider 'Sarah Beauty' applied for approval", time: "2m ago", type: "provider" },
-              { text: "Booking #G8923 completed by John Doe", time: "15m ago", type: "booking" },
-              { text: "Payout of ₦45,000 processed for Jane Smith", time: "1h ago", type: "payment" },
-              { text: "New customer 'Mike Ross' joined", time: "3h ago", type: "user" },
-              { text: "Commission report for March generated", time: "5h ago", type: "report" },
-            ].map((activity, i) => (
+          <div className="space-y-6 relative before:absolute before:left-2.5 before:top-2 before:bottom-2 before:w-0.5 before:bg-gray-50 overflow-y-auto max-h-80">
+            {activityFeed.length === 0 ? (
+              <div className="py-8 text-center text-text-light text-xs font-medium">No recent activity</div>
+            ) : activityFeed.map((activity, i) => (
               <div key={i} className="flex items-start gap-5 relative z-10">
-                <div className={`h-5 w-5 rounded-full mt-1 border-4 border-white shadow-sm ${
+                <div className={`h-5 w-5 rounded-full mt-0.5 flex-shrink-0 border-4 border-white shadow-sm ${
                   activity.type === 'provider' ? 'bg-blue-500' :
-                  activity.type === 'booking' ? 'bg-green-500' :
                   activity.type === 'payment' ? 'bg-orange-500' :
-                  'bg-purple-500'
-                }`}></div>
-                <div className="flex-1">
-                  <p className="text-[13px] font-medium text-text leading-tight">{activity.text}</p>
-                  <p className="text-[10px] font-medium text-text-light mt-1 uppercase tracking-wider">{activity.time}</p>
+                  activity.type === 'cancelled' ? 'bg-red-400' :
+                  'bg-green-500'
+                }`} />
+                <div className="flex-1 min-w-0">
+                  <p className="text-[12px] font-medium text-text leading-snug">{activity.text}</p>
+                  <p className="text-[10px] font-medium text-text-light mt-0.5 uppercase tracking-wider">{activity.time}</p>
                 </div>
               </div>
             ))}

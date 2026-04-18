@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { X, Star, Check } from "lucide-react";
 import { SearchFilters } from "@/lib/search";
-import { subscribeCategoriesWithSubs, CategoryWithSubs } from "@/lib/categories";
+import { subscribeActiveCategories, CategoryWithSubs } from "@/lib/categories";
 
 interface FilterBottomSheetProps {
   isOpen: boolean;
@@ -30,7 +30,7 @@ export default function FilterBottomSheet({
   }, [currentFilters]);
 
   useEffect(() => {
-    const unsub = subscribeCategoriesWithSubs((data) => setCategories(data));
+    const unsub = subscribeActiveCategories((data) => setCategories(data));
     return () => unsub();
   }, []);
 

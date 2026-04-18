@@ -25,6 +25,10 @@ import {
   Star,
   Zap,
   Image as ImageIcon,
+  Award,
+  Layers,
+  ExternalLink,
+  Tag,
 } from "lucide-react";
 import Image from "next/image";
 import toast from "react-hot-toast";
@@ -314,13 +318,18 @@ export default function AdminProviderDetail() {
       {/* Section 3: Pricing & Availability */}
       <Section title="Pricing & Availability">
         <InfoRow
-          label="Hourly Rate"
-          value={provider.hourlyRate ? `₦${Number(provider.hourlyRate).toLocaleString()} / hr` : null}
+          label="Base / Hourly Rate"
+          value={(provider.basePrice || provider.hourlyRate) ? `₦${Number(provider.basePrice || provider.hourlyRate).toLocaleString()}` : null}
           icon={DollarSign}
         />
         <InfoRow
-          label="Team Rate"
-          value={provider.teamRate ? `₦${Number(provider.teamRate).toLocaleString()} / job` : null}
+          label="Standard Package"
+          value={provider.standardPrice ? `₦${Number(provider.standardPrice).toLocaleString()}` : null}
+          icon={DollarSign}
+        />
+        <InfoRow
+          label="Premium Package"
+          value={(provider.premiumPrice || provider.teamRate) ? `₦${Number(provider.premiumPrice || provider.teamRate).toLocaleString()}` : null}
           icon={DollarSign}
         />
 
@@ -350,6 +359,80 @@ export default function AdminProviderDetail() {
           />
         )}
       </Section>
+
+      {/* Section 3b: Skills, Certifications & Portfolio */}
+      {((provider.skills?.length > 0) || (provider.certifications?.length > 0) || (provider.portfolioItems?.length > 0)) && (
+        <Section title="Skills, Certifications & Portfolio">
+
+          {/* Skills */}
+          {Array.isArray(provider.skills) && provider.skills.length > 0 && (
+            <div className="flex items-start gap-3">
+              <div className="h-8 w-8 rounded-lg bg-gray-50 border border-gray-100 flex items-center justify-center text-gray-400 shrink-0 mt-0.5">
+                <Tag className="h-4 w-4" />
+              </div>
+              <div>
+                <p className="text-[10px] font-medium uppercase tracking-widest text-text-light">Skills</p>
+                <div className="flex flex-wrap gap-1.5 mt-2">
+                  {provider.skills.map((skill: string) => (
+                    <span key={skill} className="rounded-lg bg-primary/5 border border-primary/10 px-3 py-1.5 text-[10px] font-medium text-primary">
+                      {skill}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Certifications */}
+          {Array.isArray(provider.certifications) && provider.certifications.length > 0 && (
+            <div className="flex items-start gap-3">
+              <div className="h-8 w-8 rounded-lg bg-gray-50 border border-gray-100 flex items-center justify-center text-gray-400 shrink-0 mt-0.5">
+                <Award className="h-4 w-4" />
+              </div>
+              <div>
+                <p className="text-[10px] font-medium uppercase tracking-widest text-text-light">Certifications</p>
+                <ul className="mt-2 space-y-1">
+                  {provider.certifications.map((cert: string, i: number) => (
+                    <li key={i} className="flex items-center gap-2 text-sm font-medium text-text">
+                      <span className="h-1.5 w-1.5 rounded-full bg-primary shrink-0" />
+                      {cert}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          )}
+
+          {/* Portfolio */}
+          {Array.isArray(provider.portfolioItems) && provider.portfolioItems.length > 0 && (
+            <div className="flex items-start gap-3">
+              <div className="h-8 w-8 rounded-lg bg-gray-50 border border-gray-100 flex items-center justify-center text-gray-400 shrink-0 mt-0.5">
+                <Layers className="h-4 w-4" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-[10px] font-medium uppercase tracking-widest text-text-light">Portfolio</p>
+                <div className="mt-2 grid grid-cols-2 gap-2">
+                  {provider.portfolioItems.map((item: string, i: number) => {
+                    const isImage = /\.(jpg|jpeg|png|gif|webp)$/i.test(item);
+                    return isImage ? (
+                      <div key={i} className="relative h-28 rounded-xl overflow-hidden border border-gray-100 bg-gray-50">
+                        <Image src={item} alt={`Portfolio ${i + 1}`} fill className="object-cover" />
+                      </div>
+                    ) : (
+                      <a key={i} href={item} target="_blank" rel="noopener noreferrer"
+                        className="flex items-center gap-2 px-3 py-2 bg-gray-50 border border-gray-100 rounded-xl text-xs font-medium text-primary hover:bg-gray-100 transition-all truncate">
+                        <ExternalLink className="h-3.5 w-3.5 shrink-0" />
+                        {item.length > 40 ? item.slice(0, 40) + "…" : item}
+                      </a>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+          )}
+
+        </Section>
+      )}
 
       {/* Section 4: Documents */}
       <Section title="Documents & Media">

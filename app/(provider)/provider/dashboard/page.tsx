@@ -292,7 +292,13 @@ export default function ProviderDashboardPage() {
           <section>
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-[14px] lg:text-[16px] font-black text-text">Incoming Requests</h2>
-              <span className="text-[11px] font-bold text-text-light bg-yellow-50 text-yellow-600 px-2.5 py-1 rounded-full">{pending.length} new</span>
+              <div className="flex items-center gap-2">
+                <span className="text-[11px] font-bold bg-yellow-50 text-yellow-600 px-2.5 py-1 rounded-full">{pending.length} new</span>
+                <button onClick={() => router.push("/provider/bookings?tab=pending")}
+                  className="flex items-center gap-0.5 text-[11px] font-black text-primary hover:underline">
+                  See all <ChevronRight className="h-3.5 w-3.5" />
+                </button>
+              </div>
             </div>
             {loading ? (
               <div className="space-y-3">{[1, 2].map(i => <div key={i} className="h-28 rounded-2xl bg-white border border-gray-100 animate-pulse" />)}</div>
@@ -304,7 +310,7 @@ export default function ProviderDashboardPage() {
               </div>
             ) : (
               <div className="space-y-3">
-                {pending.map((b: any) => (
+                {pending.slice(0, 3).map((b: any) => (
                   <div key={b.id} className="rounded-2xl bg-white border border-gray-100 shadow-sm p-4 lg:p-5 hover:shadow-md transition-shadow">
                     <div className="flex items-start gap-3">
                       <Avatar photo={b.customerPhoto} name={b.customerName} />
@@ -328,11 +334,11 @@ export default function ProviderDashboardPage() {
                     <div className="flex gap-2 mt-4">
                       <button onClick={() => handleAccept(b)} disabled={actionId === b.id}
                         className="flex-1 rounded-xl bg-green-500 py-2.5 text-[12px] font-black text-white active:scale-95 transition-all disabled:opacity-60 hover:bg-green-600">
-                        {actionId === b.id ? "..." : "✓ Accept"}
+                        {actionId === b.id ? "..." : "Accept"}
                       </button>
                       <button onClick={() => handleDecline(b)} disabled={actionId === b.id}
                         className="flex-1 rounded-xl bg-red-50 border border-red-200 py-2.5 text-[12px] font-black text-red-500 active:scale-95 transition-all disabled:opacity-60 hover:bg-red-100">
-                        ✕ Decline
+                        Decline
                       </button>
                     </div>
                   </div>
@@ -347,12 +353,18 @@ export default function ProviderDashboardPage() {
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-[14px] lg:text-[16px] font-black text-text flex items-center gap-2">
                   <span className="h-2 w-2 rounded-full bg-green-500 animate-pulse" />
-                  Ready to Start
+                  Start Job
                 </h2>
-                <span className="text-[11px] font-bold bg-green-50 text-green-600 px-2.5 py-1 rounded-full">{readyToStart.length} paid</span>
+                <div className="flex items-center gap-2">
+                  <span className="text-[11px] font-bold bg-green-50 text-green-600 px-2.5 py-1 rounded-full">{readyToStart.length} paid</span>
+                  <button onClick={() => router.push("/provider/bookings?tab=paid")}
+                    className="flex items-center gap-0.5 text-[11px] font-black text-primary hover:underline">
+                    See all <ChevronRight className="h-3.5 w-3.5" />
+                  </button>
+                </div>
               </div>
               <div className="space-y-3">
-                {readyToStart.map((b: any) => (
+                {readyToStart.slice(0, 3).map((b: any) => (
                   <div key={b.id}
                     className="rounded-2xl bg-white border-2 border-green-200 shadow-sm p-4 lg:p-5 hover:shadow-md transition-shadow cursor-pointer"
                     onClick={() => router.push(`/provider/bookings/${b.id}`)}
@@ -365,7 +377,7 @@ export default function ProviderDashboardPage() {
                       </div>
                       <div className="text-right">
                         <p className="text-[14px] font-black text-green-600">₦{(b.price || 0).toLocaleString()}</p>
-                        <span className="text-[9px] font-black text-green-600 bg-green-50 px-2 py-0.5 rounded-full animate-pulse">✅ Ready to Start</span>
+                        <span className="text-[9px] font-black text-green-600 bg-green-50 px-2 py-0.5 rounded-full animate-pulse">Start Job</span>
                       </div>
                     </div>
                   </div>
@@ -378,10 +390,13 @@ export default function ProviderDashboardPage() {
           <section>
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-[14px] lg:text-[16px] font-black text-text">Active Bookings</h2>
-              <button onClick={() => router.push("/provider/bookings")}
-                className="flex items-center gap-1 text-[11px] font-black text-primary hover:underline">
-                See all <ChevronRight className="h-3.5 w-3.5" />
-              </button>
+              <div className="flex items-center gap-2">
+                <span className="text-[11px] font-bold bg-blue-50 text-blue-600 px-2.5 py-1 rounded-full">{active.filter((b: any) => b.status !== "paid").length} active</span>
+                <button onClick={() => router.push("/provider/bookings")}
+                  className="flex items-center gap-0.5 text-[11px] font-black text-primary hover:underline">
+                  See all <ChevronRight className="h-3.5 w-3.5" />
+                </button>
+              </div>
             </div>
             {loading ? (
               <div className="space-y-3">{[1, 2].map(i => <div key={i} className="h-20 rounded-2xl bg-white border border-gray-100 animate-pulse" />)}</div>
@@ -392,7 +407,7 @@ export default function ProviderDashboardPage() {
               </div>
             ) : (
               <div className="space-y-3">
-                {active.filter((b: any) => b.status !== "paid").slice(0, 5).map((b: any) => (
+                {active.filter((b: any) => b.status !== "paid").slice(0, 3).map((b: any) => (
                   <div key={b.id} className="flex items-center gap-3 rounded-2xl bg-white border border-gray-100 shadow-sm p-4 lg:p-5 hover:shadow-md transition-shadow cursor-pointer"
                     onClick={() => router.push(`/provider/bookings/${b.id}`)}
                   >
@@ -403,7 +418,7 @@ export default function ProviderDashboardPage() {
                     </div>
                     <div className="flex flex-col items-end gap-2">
                       <span className={`rounded-full px-2.5 py-0.5 text-[10px] font-black ${getStatusColor(b.status)}`}>
-                        {getStatusIcon(b.status)} {getProviderStatusLabel(b.status)}
+                        {getProviderStatusLabel(b.status)}
                       </span>
                       <button onClick={(e) => { e.stopPropagation(); handleOpenChat(b); }} disabled={chatLoading === b.id}
                         className="flex items-center gap-1 rounded-lg bg-primary/10 px-2.5 py-1 text-[10px] font-black text-primary active:scale-95 transition-all disabled:opacity-60 hover:bg-primary/20">
@@ -461,7 +476,13 @@ export default function ProviderDashboardPage() {
           <section>
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-[14px] lg:text-[16px] font-black text-text">Pending Payouts</h2>
-              <span className="text-[11px] font-bold bg-yellow-50 text-yellow-600 px-2.5 py-1 rounded-full">{pendingPayouts.length} pending</span>
+              <div className="flex items-center gap-2">
+                <span className="text-[11px] font-bold bg-yellow-50 text-yellow-600 px-2.5 py-1 rounded-full">{pendingPayouts.length} pending</span>
+                <button onClick={() => router.push("/provider/earnings")}
+                  className="flex items-center gap-0.5 text-[11px] font-black text-primary hover:underline">
+                  See all <ChevronRight className="h-3.5 w-3.5" />
+                </button>
+              </div>
             </div>
             {pendingPayouts.length === 0 ? (
               <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-gray-200 bg-white py-12 text-center">
@@ -471,7 +492,7 @@ export default function ProviderDashboardPage() {
               </div>
             ) : (
               <div className="rounded-2xl bg-white border border-gray-100 shadow-sm overflow-hidden divide-y divide-gray-50">
-                {pendingPayouts.map((b: any) => {
+                {pendingPayouts.slice(0, 3).map((b: any) => {
                   const amount = (b.totalAmount || b.price || 0) * 0.9;
                   const isInProgress = b.status === "in_progress";
                   return (

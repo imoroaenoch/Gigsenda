@@ -275,7 +275,7 @@ export default function BookingsPage() {
         </header>
 
         {/* ── List ── */}
-        <div className="px-4 py-5 lg:px-8 max-w-7xl mx-auto">
+        <div className="px-4 py-5 lg:px-8">
           {loading ? (
             <div className="flex flex-col items-center py-20 gap-3">
               <Loader2 className="h-8 w-8 animate-spin text-[#FF8C00]" />

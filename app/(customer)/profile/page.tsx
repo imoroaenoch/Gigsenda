@@ -12,6 +12,7 @@ import {
   Bell, 
   HelpCircle, 
   LogOut, 
+  Trash2,
   Camera,
   ChevronRight,
   ChevronDown,
@@ -22,11 +23,12 @@ import {
   ArrowLeft,
   Home,
   Briefcase,
-  MessageSquare
+  MessageSquare,
+  Heart
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { logout } from "@/lib/auth";
-import { updateUser, uploadProfilePhoto, getBookings } from "@/lib/firestore";
+import { updateUser, uploadProfilePhoto, getBookings, getFavorites, deleteAccount } from "@/lib/firestore";
 import AuthGuard from "@/components/auth/AuthGuard";
 import Image from "next/image";
 import toast from "react-hot-toast";
@@ -70,6 +72,7 @@ export default function CustomerProfilePage() {
   };
   
   const [bookingCount, setBookingCount] = useState(0);
+  const [favoritesCount, setFavoritesCount] = useState(0);
   const [isUpdating, setIsUpdating] = useState(false);
   const [isChangingPassword, setIsChangingPassword] = useState(false);
   const [showCurrentPw, setShowCurrentPw] = useState(false);
@@ -79,6 +82,8 @@ export default function CustomerProfilePage() {
   const [uploadProgress, setUploadProgress] = useState(0);
   const [localPreview, setLocalPreview] = useState<string | null>(null);
   const [uploadedPhotoURL, setUploadedPhotoURL] = useState<string | null>(null);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [isDeletingAccount, setIsDeletingAccount] = useState(false);
 
   useEffect(() => {
     if (profile) {
@@ -90,10 +95,13 @@ export default function CustomerProfilePage() {
         setNotifications(prev => ({ ...prev, ...profile.notifications }));
       }
       
-      // Fetch bookings count
+      // Fetch bookings + favorites count
       if (user?.uid) {
         getBookings(user.uid, 'customer').then(bookings => {
           setBookingCount(bookings.length);
+        });
+        getFavorites(user.uid).then(ids => {
+          setFavoritesCount(ids.length);
         });
       }
     }
@@ -190,6 +198,24 @@ export default function CustomerProfilePage() {
     }
   };
 
+  const handleDeleteAccount = async () => {
+    if (!user?.uid) return;
+    setIsDeletingAccount(true);
+    try {
+      await deleteAccount(user.uid);
+      router.push("/login");
+      toast.success("Account deleted successfully");
+    } catch (error: any) {
+      if (error?.code === "auth/requires-recent-login") {
+        toast.error("Please log out and log back in, then try again");
+      } else {
+        toast.error("Failed to delete account");
+      }
+      setIsDeletingAccount(false);
+      setShowDeleteConfirm(false);
+    }
+  };
+
   return (
     <AuthGuard>
       <main className="min-h-screen bg-white pb-24 lg:pb-8">
@@ -262,8 +288,8 @@ export default function CustomerProfilePage() {
                 </div>
                 <div className="w-px bg-orange-200" />
                 <div className="text-center">
-                  <p className="text-xl font-black text-primary">5.0</p>
-                  <p className="text-[10px] font-semibold text-gray-500">Rating</p>
+                  <p className="text-xl font-black text-primary">{favoritesCount}</p>
+                  <p className="text-[10px] font-semibold text-gray-500">Saved</p>
                 </div>
               </div>
             </div>
@@ -283,6 +309,23 @@ export default function CustomerProfilePage() {
               <div className="text-left">
                 <h3 className="font-bold text-text">My Bookings</h3>
                 <p className="text-xs font-medium text-text-light">{bookingCount} total bookings</p>
+              </div>
+            </div>
+            <ChevronRight className="h-5 w-5 text-gray-300" />
+          </button>
+
+          {/* Saved Providers */}
+          <button
+            onClick={() => router.push("/favorites")}
+            className="flex w-full items-center justify-between rounded-2xl bg-white p-5 shadow-sm border border-gray-100 active:scale-[0.98] transition-all"
+          >
+            <div className="flex items-center gap-4">
+              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-red-50 text-red-400">
+                <Heart className="h-6 w-6" />
+              </div>
+              <div className="text-left">
+                <h3 className="font-bold text-text">Saved Providers</h3>
+                <p className="text-xs font-medium text-text-light">{favoritesCount} {favoritesCount === 1 ? 'provider' : 'providers'} saved</p>
               </div>
             </div>
             <ChevronRight className="h-5 w-5 text-gray-300" />
@@ -470,8 +513,58 @@ export default function CustomerProfilePage() {
             <LogOut className="h-5 w-5" />
             Logout Account
           </button>
+
+          {/* Danger Zone */}
+          <div className="rounded-2xl border-2 border-red-100 bg-red-50/50 p-5">
+            <div className="flex items-center gap-2 mb-3">
+              <Trash2 className="h-4 w-4 text-red-500" />
+              <h3 className="text-[13px] font-black uppercase tracking-widest text-red-500">Danger Zone</h3>
+            </div>
+            <p className="text-[12px] font-medium text-red-400 leading-relaxed mb-4">
+              Once you delete your account, there is <span className="font-black text-red-500">no going back</span>. All your data, bookings, and profile information will be permanently removed. Please make absolutely sure before proceeding.
+            </p>
+            <button
+              onClick={() => setShowDeleteConfirm(true)}
+              className="flex w-full items-center justify-center gap-2 rounded-xl border-2 border-red-300 bg-white py-3.5 text-sm font-black text-red-500 hover:bg-red-50 transition-all active:scale-95"
+            >
+              <Trash2 className="h-4 w-4" />
+              Delete My Account
+            </button>
+          </div>
           </div>{/* end right col */}
         </div>{/* end lg:flex two-column */}
+
+        {/* Delete Account Confirmation Modal */}
+        {showDeleteConfirm && (
+          <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center">
+            <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => !isDeletingAccount && setShowDeleteConfirm(false)} />
+            <div className="relative w-full sm:max-w-sm mx-4 sm:mx-auto bg-white rounded-t-3xl sm:rounded-3xl p-6 shadow-2xl">
+              <div className="flex h-14 w-14 items-center justify-center rounded-full bg-red-50 mx-auto mb-4">
+                <Trash2 className="h-7 w-7 text-red-500" />
+              </div>
+              <h2 className="text-[18px] font-black text-gray-900 text-center">Delete Account?</h2>
+              <p className="mt-2 text-[13px] font-medium text-gray-400 text-center leading-relaxed">
+                This will permanently delete your account, profile, and all associated data. This action <span className="font-black text-red-500">cannot be undone</span>.
+              </p>
+              <div className="mt-6 flex flex-col gap-3">
+                <button
+                  onClick={handleDeleteAccount}
+                  disabled={isDeletingAccount}
+                  className="w-full rounded-2xl bg-red-500 py-4 text-sm font-black text-white shadow-lg shadow-red-500/20 active:scale-95 transition-all disabled:opacity-60"
+                >
+                  {isDeletingAccount ? "Deleting..." : "Yes, Delete My Account"}
+                </button>
+                <button
+                  onClick={() => setShowDeleteConfirm(false)}
+                  disabled={isDeletingAccount}
+                  className="w-full rounded-2xl bg-gray-100 py-4 text-sm font-black text-gray-600 active:scale-95 transition-all disabled:opacity-60"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Premium Floating Bottom Navigation - Compact */}
         <nav className="lg:hidden fixed bottom-0 left-0 right-0 flex items-center justify-around bg-white px-4 py-3.5 border-t border-gray-100 shadow-[0_-4px_20px_rgba(0,0,0,0.06)] z-50">

@@ -79,6 +79,45 @@ export const subscribeCategoriesWithSubs = (
   return unsubCats;
 };
 
+/**
+ * Customer-facing: real-time listener that ONLY returns categories which have
+ * at least one active (approved) provider. Empty categories are hidden.
+ * Provider setup should keep using subscribeCategoriesWithSubs instead.
+ */
+export const subscribeActiveCategories = (
+  callback: (data: CategoryWithSubs[]) => void
+): (() => void) => {
+  const unsubCats = onSnapshot(
+    query(collection(db, "categories"), orderBy("name", "asc")),
+    async (catSnap) => {
+      const cats: Category[] = catSnap.docs.map(d => ({ id: d.id, ...d.data() } as Category));
+      if (cats.length === 0) { callback([]); return; }
+      try {
+        // Fetch all approved providers in one query
+        const provSnap = await getDocs(
+          query(collection(db, "providers"), where("isApproved", "==", true))
+        );
+        const activeCategoryNames = new Set(
+          provSnap.docs.map(d => d.data().category as string).filter(Boolean)
+        );
+        const subSnap = await getDocs(query(collection(db, "subcategories"), orderBy("name", "asc")));
+        const allSubs: Subcategory[] = subSnap.docs.map(d => ({ id: d.id, ...d.data() } as Subcategory));
+        // Only include categories that have at least one active provider
+        const result: CategoryWithSubs[] = cats
+          .filter(cat => activeCategoryNames.has(cat.name))
+          .map(cat => ({
+            ...cat,
+            subcategories: allSubs.filter(s => s.categoryId === cat.id),
+          }));
+        callback(result);
+      } catch {
+        callback([]);
+      }
+    }
+  );
+  return unsubCats;
+};
+
 // Real-time listener: subcategories only (for filter sheet)
 export const subscribeSubcategories = (
   callback: (data: Subcategory[]) => void

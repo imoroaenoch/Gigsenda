@@ -14,18 +14,18 @@ import ProviderBottomNav from "@/components/provider/ProviderBottomNav";
 import { db } from "@/lib/firebase";
 import { collection, query, where, onSnapshot, getDoc, doc } from "firebase/firestore";
 import { format } from "date-fns";
-import { getProviderStatusLabel, getStatusColor, getStatusIcon } from "@/lib/booking-status";
+import { getProviderStatusLabel, getStatusColor } from "@/lib/booking-status";
 
-type TabId = "all" | "pending" | "active" | "completed" | "cancelled";
-
-const ACTIVE_PROVIDER_STATUSES = ["accepted", "paid", "in_progress", "upcoming"];
+type TabId = "all" | "pending" | "accepted" | "paid" | "in_progress" | "completed" | "cancelled";
 
 const TABS: { id: TabId; label: string }[] = [
-  { id: "all",       label: "All" },
-  { id: "pending",   label: "New Requests" },
-  { id: "active",    label: "Active" },
-  { id: "completed", label: "Completed" },
-  { id: "cancelled", label: "Cancelled" },
+  { id: "all",         label: "All" },
+  { id: "pending",     label: "New Requests" },
+  { id: "accepted",    label: "Awaiting Payment" },
+  { id: "paid",        label: "Start Job" },
+  { id: "in_progress", label: "In Progress" },
+  { id: "completed",   label: "Completed" },
+  { id: "cancelled",   label: "Cancelled" },
 ];
 
 function ProviderBookingsPage() {
@@ -81,9 +81,12 @@ function ProviderBookingsPage() {
 
   const filtered = activeTab === "all"
     ? bookings
-    : activeTab === "active"
-    ? bookings.filter((b: any) => ACTIVE_PROVIDER_STATUSES.includes(b.status))
-    : bookings.filter((b: any) => b.status === activeTab);
+    : activeTab === "cancelled"
+    ? bookings.filter((b: any) => ["cancelled", "rejected", "disputed"].includes(b.status))
+    : bookings.filter((b: any) => {
+        const s = b.status === "upcoming" ? "paid" : b.status;
+        return s === activeTab;
+      });
 
   const fmtDate = (ts: any) => {
     if (!ts) return "—";
@@ -105,11 +108,18 @@ function ProviderBookingsPage() {
               </p>
             </div>
             <div className="hidden lg:flex items-center gap-2">
-              {(["pending", "accepted", "paid", "in_progress", "completed"] as string[]).map(key => (
-                <span key={key} className={`text-[11px] font-black px-3 py-1 rounded-full ${getStatusColor(key)}`}>
-                  {bookings.filter((b: any) => b.status === key).length} {getProviderStatusLabel(key)}
-                </span>
-              ))}
+              {(["pending", "accepted", "paid", "in_progress", "completed"] as string[]).map(key => {
+                const count = bookings.filter((b: any) => {
+                  const s = b.status === "upcoming" ? "paid" : b.status;
+                  return s === key;
+                }).length;
+                if (count === 0) return null;
+                return (
+                  <span key={key} className={`text-[11px] font-black px-3 py-1 rounded-full ${getStatusColor(key)}`}>
+                    {count} {getProviderStatusLabel(key)}
+                  </span>
+                );
+              })}
             </div>
           </div>
         </header>
@@ -120,9 +130,12 @@ function ProviderBookingsPage() {
             {TABS.map(tab => {
               const count = tab.id === "all"
                 ? bookings.length
-                : tab.id === "active"
-                ? bookings.filter((b: any) => ACTIVE_PROVIDER_STATUSES.includes(b.status)).length
-                : bookings.filter((b: any) => b.status === tab.id).length;
+                : tab.id === "cancelled"
+                ? bookings.filter((b: any) => ["cancelled", "rejected", "disputed"].includes(b.status)).length
+                : bookings.filter((b: any) => {
+                    const s = b.status === "upcoming" ? "paid" : b.status;
+                    return s === tab.id;
+                  }).length;
               return (
                 <button
                   key={tab.id}
@@ -184,7 +197,7 @@ function ProviderBookingsPage() {
                           <span className={`flex-shrink-0 rounded-full px-2.5 py-0.5 text-[10px] font-black ${getStatusColor(b.status)} ${
                             isPaid ? "animate-pulse" : ""
                           }`}>
-                            {getStatusIcon(b.status)} {getProviderStatusLabel(b.status)}
+                            {getProviderStatusLabel(b.status)}
                           </span>
                         </div>
                         <div className="flex items-center gap-1 mt-1.5">

@@ -64,13 +64,18 @@
   input, textarea, select {
     -webkit-user-select: text;
     user-select: text;
-    touch-action: auto;
   }
   
   html, body {
     font-family: 'Brighter Sans', sans-serif;
     background-color: #ffffff;
-    touch-action: manipulation;
+  }
+
+  /* iOS auto-zoom fix: Safari zooms in when input font-size < 16px.
+     Setting font-size to 16px on all inputs prevents this without
+     blocking scroll, pinch, or pull-to-refresh. */
+  input, textarea, select {
+    font-size: 16px !important;
   }
   
   h1, h2, h3, h4, h5, h6 {

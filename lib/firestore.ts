@@ -277,23 +277,24 @@ export const getProvider = async (uid: string) => {
 export const getProviders = async (category?: string) => {
   try {
     const providersRef = collection(db, "providers");
-    let q = query(providersRef, where("isApproved", "==", true));
-    
-    if (category && category !== "All") {
-      q = query(providersRef, where("isApproved", "==", true), where("category", "==", category));
-    }
-    
+    // Single-field query only — avoids composite index requirement
+    const q = query(providersRef, where("isApproved", "==", true));
     const querySnapshot = await withTimeout(getDocs(q));
-    const results = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-    
-    // Sort in-memory to avoid compound index requirement
+    let results = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as any[];
+
+    // Filter category in-memory to avoid compound index
+    if (category && category !== "All") {
+      results = results.filter((p: any) => p.category === category);
+    }
+
+    // Sort newest first in-memory
     return results.sort((a: any, b: any) => {
       const dateA = a.createdAt?.toDate?.() || new Date(a.createdAt || 0);
       const dateB = b.createdAt?.toDate?.() || new Date(b.createdAt || 0);
       return dateB.getTime() - dateA.getTime();
     });
-  } catch (error) {
-    console.error("Error getting providers:", error);
+  } catch (error: any) {
+    console.error("Error getting providers:", error?.message || error?.code || JSON.stringify(error));
     throw error;
   }
 };
@@ -510,4 +511,23 @@ export const toggleFavorite = async (
     : [...currentFavorites, providerId];
   await updateDoc(doc(db, "users", userId), { favorites: updated });
   return updated;
+};
+
+// --- Delete Account ---
+export const deleteAccount = async (userId: string): Promise<void> => {
+  // Delete Firestore user document
+  await deleteDoc(doc(db, "users", userId));
+
+  // Delete provider document if it exists
+  const providerSnap = await getDoc(doc(db, "providers", userId));
+  if (providerSnap.exists()) {
+    await deleteDoc(doc(db, "providers", userId));
+  }
+
+  // Delete Firebase Auth user (must be done last)
+  const { getAuth } = await import("firebase/auth");
+  const authUser = getAuth().currentUser;
+  if (authUser) {
+    await authUser.delete();
+  }
 };

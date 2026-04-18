@@ -84,6 +84,18 @@ export default function ProviderSetupPage() {
     accountName: "",
   });
 
+  // Pre-fill form with existing customer profile data once loaded
+  useEffect(() => {
+    if (!profile) return;
+    setFormData(prev => ({
+      ...prev,
+      name: prev.name || profile.name || "",
+      phone: prev.phone || profile.phone || "",
+      photoURL: prev.photoURL || profile.photoURL || "",
+      city: prev.city || (profile as any).address || "",
+    }));
+  }, [profile]);
+
   const handleNext = () => {
     if (validateStep(currentStep)) {
       setCurrentStep(prev => prev + 1);
@@ -295,6 +307,22 @@ export default function ProviderSetupPage() {
             </div>
 
             <div className="space-y-4">
+              {/* Email — locked, pre-filled from account */}
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-medium uppercase tracking-wider text-text-light">Email Address</label>
+                <div className="flex items-center rounded-xl bg-gray-50 border border-gray-100 px-4 py-3 shadow-sm opacity-70">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+                  <input
+                    type="email"
+                    value={user?.email || profile?.email || ""}
+                    readOnly
+                    disabled
+                    className="ml-3 w-full bg-transparent text-sm font-medium outline-none text-gray-400 cursor-not-allowed"
+                  />
+                  <span className="text-[9px] font-black uppercase tracking-widest text-gray-300 ml-2">Locked</span>
+                </div>
+              </div>
+
               <div className="space-y-1.5">
                 <label className="text-[10px] font-medium uppercase tracking-wider text-text-light">Full Name</label>
                 <div className="flex items-center rounded-xl bg-white border border-gray-100 px-4 py-3 shadow-sm">

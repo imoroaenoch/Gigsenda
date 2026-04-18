@@ -53,7 +53,7 @@ export default function ProviderProfilePage() {
           setProvider({
             ...data, id,
             availability: availDays,
-            image: data.photoURL || "https://images.unsplash.com/photo-1560250097-0b93528c311a?w=800&h=800&fit=crop",
+            image: data.photoURL || "https://images.unsplash.com/photo-1560250097-0b93528c311a?w=1200&h=1600&fit=crop&q=100",
             price: data.hourlyRate || data.price || 0,
             specialization: data.serviceTitle || data.category || "Professional"
           });
@@ -121,8 +121,8 @@ export default function ProviderProfilePage() {
           <p className="mt-4 text-[13px] font-semibold text-text leading-[1.6]">{provider.bio}</p>
           <div className="mt-8 flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="relative h-11 w-11 overflow-hidden rounded-full border-2 border-primary/10">
-                <Image src={provider.image} alt={provider.name} fill className="object-cover" />
+              <div className="h-11 w-11 overflow-hidden rounded-full border-2 border-primary/10 shrink-0">
+                <Image src={provider.image} alt={provider.name} width={44} height={44} className="object-cover w-full h-full" />
               </div>
               <div>
                 <h4 className="text-[15px] font-semibold text-text">{provider.name}</h4>
@@ -217,8 +217,10 @@ export default function ProviderProfilePage() {
                 <div key={review.id} className="border-b border-gray-100 pb-6 last:border-0">
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center gap-3">
-                      <div className="relative h-10 w-10 overflow-hidden rounded-full bg-gray-100">
-                        {review.customerPhoto ? <Image src={review.customerPhoto} alt={review.customerName} fill className="object-cover" /> : <div className="flex h-full w-full items-center justify-center text-gray-400"><Users2 className="h-5 w-5" /></div>}
+                      <div className="h-10 w-10 overflow-hidden rounded-full bg-gray-100 shrink-0 flex items-center justify-center">
+                        {review.customerPhoto
+                          ? <Image src={review.customerPhoto} alt={review.customerName} width={40} height={40} className="object-cover w-full h-full rounded-full" />
+                          : <Users2 className="h-5 w-5 text-gray-400" />}
                       </div>
                       <div>
                         <h4 className="text-[13px] font-semibold text-text leading-tight">{review.customerName}</h4>
@@ -283,6 +285,20 @@ export default function ProviderProfilePage() {
         <div className="space-y-6">
           <h2 className="text-lg font-semibold text-text">Experience</h2>
 
+          {/* Portfolio Photos */}
+          {provider.portfolioPhotos && provider.portfolioPhotos.length > 0 && (
+            <div className="space-y-3">
+              <h3 className="text-[11px] font-black uppercase tracking-wider text-text-light">Work Photos</h3>
+              <div className="grid grid-cols-3 gap-2">
+                {provider.portfolioPhotos.map((url: string, i: number) => (
+                  <div key={i} className="relative aspect-square rounded-xl overflow-hidden border border-gray-100 bg-gray-50">
+                    <Image src={url} alt={`Work photo ${i + 1}`} fill className="object-cover" />
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* Years of experience */}
           <div className="flex items-center gap-3 rounded-2xl bg-[#FFF4E5]/50 border-2 border-primary/20 p-4">
             <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
@@ -341,7 +357,7 @@ export default function ProviderProfilePage() {
           )}
 
           {/* Fallback if nothing is filled in yet */}
-          {!provider.skills?.length && !provider.certifications?.length && !provider.portfolioItems?.length && (
+          {!provider.portfolioPhotos?.length && !provider.skills?.length && !provider.certifications?.length && !provider.portfolioItems?.length && (
             <div className="flex flex-col items-center py-8 text-center">
               <div className="rounded-full bg-gray-50 p-8 text-gray-200 mb-4"><Briefcase className="h-10 w-10" /></div>
               <p className="text-sm font-semibold text-text-light">No additional details added yet</p>
@@ -446,7 +462,7 @@ export default function ProviderProfilePage() {
               <div className="mt-2 rounded-lg bg-primary px-3 py-1 text-[11px] font-medium text-white shadow-lg shadow-primary/20">&#8358;{provider.price.toLocaleString()}/service</div>
             </div>
             <div className="relative h-full w-full">
-              <Image src={provider.image} alt={provider.name} fill className="object-cover object-center" priority />
+              <Image src={provider.image} alt={provider.name} fill sizes="100vw" quality={100} className="object-cover object-top" priority />
               <div className="absolute bottom-0 left-0 h-1/3 w-full bg-gradient-to-t from-[#FFF8F0] to-transparent" />
             </div>
           </div>
